@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content">
+  <title>ViewGo AI | Agent</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+  <style>
+    .lang-toggle-btn {
+      background: var(--primary-lt, #eee7ff);
+      border: 1px solid transparent;
+      border-radius: 8px;
+      color: var(--primary, #7c3aed);
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: 0.72rem;
+
+      height: 30px;
+      letter-spacing: 0.06em;
+      min-width: 36px;
+      padding: 0 8px;
+      transition: background 0.2s, transform 0.15s;
+      display: none !important;
+
+    }
+
+    .lang-toggle-btn:hover {
+      opacity: 0.85;
+      transform: scale(1.05);
+    }
+
+    .lang-toggle-btn:active {
+      transform: scale(0.95);
+    }
+
+    :root {
+      --bg: #f4f7f6;
+      --surface: #ffffff;
+      --primary: #7c3aed;
+      --primary-lt: #eee7ff;
+      --text: #1f2937;
+      --text2: #6b7280;
+      --border: #e5e7eb;
+      --radius: 18px;
+      --font: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent !important;
+      outline: none !important;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      margin: 0;
+      min-height: 100vh;
+      /* Apenas o mínimo, permite crescer */
+    }
+
+    html,
+    body {
+      margin: 0;
+      padding: 0;
+      scroll-behavior: smooth;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* HEADER */
+    .chat-header {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: var(--surface);
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid var(--border);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+    }
+
+    .btn-back {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      margin-left: -8px;
+      transition: background 0.2s, transform 0.1s;
+      border-radius: 50%;
+      display: none !important;
+    }
+
+    .btn-back:active {
+      background: rgba(0, 0, 0, 0.05);
+      transform: scale(0.92);
+    }
+
+    .agent-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex: 1;
+    }
+
+    .agent-avatar {
+      width: 40px;
+      height: 40px;
+      background: var(--primary);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+    }
+
+    /* MESSAGES AREA */
+    #chat-container {
+      flex: 1;
+      padding: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .msg {
+      max-width: 85%;
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      font-size: 15px;
+      line-height: 1.4;
+      position: relative;
+      animation: fadeIn .2s ease;
+      word-wrap: break-word;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .msg-bot {
+      background: var(--surface);
+      color: var(--text);
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+      border: 1px solid var(--border);
+    }
+
+    .msg-user {
+      background: var(--primary);
+      color: white;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 4px 10px rgba(124, 58, 237, 0.15);
+    }
+
+    /* INPUT AREA */
+    .input-area {
+      background: var(--surface);
+      padding: 12px 14px;
+      display: flex;
+      align-items: flex-end;
+      gap: 8px;
+      border-top: 1px solid var(--border);
+      width: 100%;
+      background: var(--bg);
+      flex-shrink: 0;
+    }
+
+    .chat-input {
+      flex: 1;
+      height: 80px;
+      /* Altura reduzida do textarea */
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 16px;
+      background: #fff !important;
+      color: #000 !important;
+      outline: none;
+      transition: all .2s;
+      -webkit-appearance: none;
+      appearance: none;
+      /* Compatibilidade universal */
+      resize: none;
+      font-family: inherit;
+    }
+
+    .chat-input:focus {
+      border-color: var(--primary);
+      background: #ffffff !important;
+      box-shadow: 0 4px 12px rgba(124, 58, 237, 0.1);
+    }
+
+    .btn-send {
+      width: 46px;
+      height: 46px;
+      background: var(--primary);
+      border: none;
+      border-radius: 12px;
+      color: white;
+      cursor: pointer;
+      transform: scale(1);
+      transition: transform .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-bottom: 2px;
+    }
+
+    .btn-send:active {
+      transform: scale(0.9);
+    }
+
+    .suggestion-chips {
+      padding: 10px 20px;
+      display: flex;
+      gap: 10px;
+      overflow-x: auto;
+      white-space: nowrap;
+      width: 100%;
+      background: var(--bg);
+      flex-shrink: 0;
+    }
+
+    .chip {
+      background: #eee7ff;
+      border: 1px solid var(--primary-lt);
+      padding: 8px 18px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      
+      cursor: pointer;
+      color: var(--primary);
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+    }
+
+    .chips-wrapper {
+      position: relative;
+      background: var(--bg);
+      flex-shrink: 0;
+    }
+
+    .scroll-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 10;
+      width: 32px;
+      height: 32px;
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid var(--border);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s;
+      color: var(--primary);
+    }
+
+    .scroll-btn:hover {
+      background: #fff;
+    }
+
+    .scroll-btn.left {
+      left: 5px;
+    }
+
+    .scroll-btn.right {
+      right: 5px;
+    }
+
+    ::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header class="chat-header">
+    <button id="btn-back" class="btn-back" onclick="goBack()">
+      <span class="material-symbols-outlined" style="font-size: 22px;">arrow_back_ios</span>
+    </button>
+    <div class="agent-info">
+      <div class="agent-avatar"><img src="robo.png" style="width:100%; height:100%; object-fit:contain;"></div>
+      <div>
+        <div style="font-size: 1rem;">Agent | AI</div>
+        <p id="agent-status" style="font-size: 0.75rem; color: var(--text2);" data-i18n="agent_online">Online e pronto
+          para ajudar</p>
+      </div>
+    </div>
+    <button class="lang-toggle-btn" id="agent-lang-btn" onclick="toggleAgentLang()" title="Switch language">EN</button>
+  </header>
+
+  <div id="chat-container">
+    <!-- Mensagens aqui -->
+  </div>
+
+  <div class="chips-wrapper">
+    <button class="scroll-btn left" onclick="scrollChips(-200)">
+      <span class="material-symbols-outlined">chevron_left</span>
+    </button>
+    <div class="suggestion-chips" id="suggestion-chips">
+      <!-- Rendered by JS / i18n -->
+    </div>
+    <button class="scroll-btn right" onclick="scrollChips(200)">
+      <span class="material-symbols-outlined">chevron_right</span>
+    </button>
+  </div>
+
+  <div class="input-area" id="inputContainer">
+    <textarea id="userInputField" class="chat-input" data-i18n="agent_input_placeholder" data-i18n-attr="placeholder"
+      placeholder="Escreva aqui..." autocomplete="off"></textarea>
+    <button id="sendBtn" class="btn-send">
+      <span class="material-symbols-outlined">send</span>
+    </button>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="i18n.js"></script>
+
+  <script>
+    // Global sound system
+    function playClick() {
+      // Verifica se o som está habilitado no localStorage (sincronizado com o app principal)
+      const soundsEnabled = localStorage.getItem('agbizu_sounds_enabled') !== 'false';
+      if (!soundsEnabled) return;
+
+      try {
+        const audio = new Audio('click.mp3');
+        audio.play().catch(() => { });
+      } catch (e) { }
+    }
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('button, a, .chip, [role="button"]')) {
+        playClick();
+      }
+    }, true);
+
+    // Função para voltar (pode ser chamada pelo Kodular)
+    function goBack() {
+      playClick();
+      setTimeout(function () {
+        window.location.href = 'index.html';
+      }, 100);
+    }
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyASa8uMK4O1U_bQC5Ykl-OflJttFSJFNnM",
+      authDomain: "orange-proof.firebaseapp.com",
+      databaseURL: "https://orange-proof-default-rtdb.firebaseio.com",
+      projectId: "orange-proof",
+      storageBucket: "orange-proof.firebasestorage.app",
+      messagingSenderId: "619099154724",
+      appId: "1:619099154724:web:e61ff7ce22e29be929ebb1"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    const S = {
+      currentUser: localStorage.getItem('agbizu_session'),
+      userScale: null,
+      events: [],
+      syncing: true // Indica se estamos aguardando a primeira conexão com o servidor
+    };
+
+    // Load User Data
+    // Load User Data Realtime
+    if (S.currentUser) {
+      db.ref(`users/${S.currentUser}`).on('value', snap => {
+        const data = snap.val();
+        if (data) {
+          S.userScale = data.scale;
+          S.events = data.events ? Object.keys(data.events).map(k => ({ id: k, ...data.events[k] })) : [];
+        }
+        S.syncing = false; // Sincronização básica concluída (mesmo se data for null)
+      });
+    } else {
+      S.syncing = false; // Não há usuário para sincronizar
+    }
+
+    function toDateStr(d) {
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    }
+
+    const chat = document.getElementById('chat-container');
+    const uiInput = document.getElementById('userInputField');
+    const sendBtn = document.getElementById('sendBtn');
+
+    // =========================================
+    // DETECÇÃO DE TECLADO MOBILE (Robusto)
+    // =========================================
+    // Em WebViews clássicas (sem Resize Observer nativo ou visualViewport instável), o redimensionamento 
+    // real foca o campo. Deixamos o navegador repintar e forçamos o scroll da tela e do chat.
+    function onKeyboardOpen() {
+      setTimeout(() => {
+        window.scrollTo(0, document.body.scrollHeight);
+        chat.scrollTop = chat.scrollHeight;
+      }, 150);
+      setTimeout(() => {
+        window.scrollTo(0, document.body.scrollHeight);
+        chat.scrollTop = chat.scrollHeight;
+      }, 300);
+    }
+
+    if (window.visualViewport) {
+      window.visualViewport.addEventListener('resize', onKeyboardOpen);
+    }
+
+    window.addEventListener('resize', onKeyboardOpen);
+
+    // Tenta forçar o scroll extra quando o campo entra em foco como failsafe para Android Webview
+    uiInput.addEventListener('focus', onKeyboardOpen);
+
+    uiInput.addEventListener('blur', () => {
+      window.scrollTo(0, 0);
+    });
+
+    function addMsg(text, type) {
+      const d = document.createElement('div');
+      d.className = `msg msg-${type}`;
+      d.textContent = text;
+      chat.appendChild(d);
+      chat.scrollTo({ top: chat.scrollHeight, behavior: 'smooth' });
+    }
+
+    function ask(text) {
+      uiInput.value = text;
+      handleSend();
+    }
+
+    async function handleSend() {
+      const raw = uiInput.value.trim();
+      if (!raw) return;
+
+      addMsg(raw, 'user');
+      uiInput.value = '';
+
+      // Simular delay de pensamento
+      const thinking = document.createElement('div');
+      thinking.className = 'msg msg-bot';
+      thinking.textContent = '...';
+      chat.appendChild(thinking);
+      chat.scrollTo({ top: chat.scrollHeight, behavior: 'smooth' });
+
+      setTimeout(() => {
+        chat.removeChild(thinking);
+        processInput(raw);
+      }, 600);
+    }
+
+    function getLang() {
+      return (typeof i18n !== 'undefined') ? i18n.lang() : 'pt';
+    }
+
+    function processInput(text) {
+      let q = text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[?.!,]/g, "");
+
+      // Number-word to numeral map (PT + EN)
+      // Number-word to numeral map (PT + EN)
+      const numMap = {
+        'um': 1, 'uma': 1, 'dois': 2, 'tres': 3, 'quatro': 4, 'cinco': 5, 'seis': 6, 'sete': 7, 'oito': 8, 'nove': 9, 'dez': 10,
+        'vinte': 20, 'trinta': 30,
+        'one': 1, 'two': 2, 'three': 3, 'four': 4, 'five': 5, 'six': 6, 'seven': 7, 'eight': 8, 'nine': 9, 'ten': 10,
+        'twenty': 20, 'thirty': 30
+      };
+      for (const [word, val] of Object.entries(numMap)) q = q.replace(new RegExp('\\b' + word + '\\b', 'g'), val);
+
+      // Handle units manually for cleaner extraction
+      q = q.replace(/\b1\s+semana\b/g, '7').replace(/\b1\s+week\b/g, '7');
+      q = q.replace(/\bsemana\b/g, '7').replace(/\bweek\b/g, '7');
+      q = q.replace(/\bmes\b/g, '30').replace(/\bmonth\b/g, '30');
+
+      q = q.replace(/(\d+)\s+(?:e|and)\s+(\d+)/g, (m, p1, p2) => parseInt(p1) + parseInt(p2));
+
+      const res = getIntelligentResponse(q, text);
+      addMsg(res, 'bot');
+    }
+
+    let mem = { holiday: null, intent: null, date: null };
+
+    // ─────────────────────────────────────────────────────────
+    // BILINGUAL HOLIDAY TABLE  (PT name → date)
+    // ─────────────────────────────────────────────────────────
+    const HOLIDAYS_KEYS = {
+      pt: [
+        { keys: ['natal', 'christmas'], m: 11, d: 25 },
+        { keys: ['ano novo', 'reveillon', 'new year'], m: 0, d: 1 },
+        { keys: ['trabalhador', 'worker', 'labor day', 'may day'], m: 4, d: 1 },
+        { keys: ['independencia', 'independence'], m: 8, d: 7 },
+        { keys: ['7 de setembro', 'september 7'], m: 8, d: 7 },
+        { keys: ['criancas', 'aparecida', 'children'], m: 9, d: 12 },
+        { keys: ['finados', 'all souls', 'souls day'], m: 10, d: 2 },
+        { keys: ['republica', 'republic'], m: 10, d: 15 },
+        { keys: ['pascoa', 'easter'], m: 3, d: 5 },
+        { keys: ['carnaval', 'carnival'], m: 1, d: 17 },
+        { keys: ['tiradentes'], m: 3, d: 21 },
+      ]
+    };
+
+    function getIntelligentResponse(q, rawText) {
+      const lang = getLang();
+      const isEN = lang === 'en';
+      const locale = isEN ? 'en-US' : 'pt-BR';
+      let targetDate = new Date();
+      let foundRelativeDate = false;
+      let relativeText = "";
+      let currentIntent = null;
+      let currentHoliday = null;
+
+      // Explicit year mention (e.g. 2026, 2027)
+      const yearMatch = q.match(/\b(20\d\d)\b/);
+      const explicitYear = yearMatch ? parseInt(yearMatch[1]) : null;
+
+      // ── Identify scale/schedule intent (bilingual) ──
+      const isScaleQuery = q.includes('folga') || q.includes('trabalha') || q.includes('trabalho') || q.includes('trampa') || q.includes('trampo') || q.includes('servico') || q.includes('escala') || q.includes('descans')
+        || q.includes('day off') || q.includes('off day') || q.includes('schedule') || q.includes('shift') || q.includes('work') || q.includes('rest') || q.includes('off tomorrow') || q.includes('working') || q.includes('am i off') || q.includes('do i work');
+
+      // Specific triggers for extra content that should override scale intent
+      const isExtraContent = q.includes('piada') || q.includes('joke') || q.includes('filme') || q.includes('movie') ||
+        q.includes('biblia') || q.includes('bible') || q.includes('versiculo') || q.includes('verse') ||
+        q.includes('motivacao') || q.includes('motivation') || q.includes('frase');
+
+      if (isScaleQuery && !isExtraContent) currentIntent = 'scale';
+
+      // 1. DATA EXTRACTION
+      const explicitDateMatch = q.match(/\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/);
+
+      if (explicitDateMatch) {
+        const d = parseInt(explicitDateMatch[1]);
+        const m = parseInt(explicitDateMatch[2]) - 1;
+        const y = explicitDateMatch[3] ?
+          (explicitDateMatch[3].length === 2 ? 2000 + parseInt(explicitDateMatch[3]) : parseInt(explicitDateMatch[3]))
+          : (explicitYear ? explicitYear : new Date().getFullYear());
+
+        targetDate = new Date(y, m, d);
+        foundRelativeDate = true;
+        relativeText = `no dia ${explicitDateMatch[0]}`;
+      } else if (q.includes('amanha') || q.includes('tomorrow')) {
+        targetDate.setDate(targetDate.getDate() + 1);
+        foundRelativeDate = true; relativeText = isEN ? 'tomorrow' : 'amanhã';
+      } else if (q.includes('depois de amanha') || q.includes('day after tomorrow') || q.includes('overmorrow')) {
+        targetDate.setDate(targetDate.getDate() + 2);
+        foundRelativeDate = true; relativeText = isEN ? 'the day after tomorrow' : 'depois de amanhã';
+      } else if (q.includes('ontem') || q.includes('yesterday')) {
+        targetDate.setDate(targetDate.getDate() - 1);
+        foundRelativeDate = true; relativeText = isEN ? 'yesterday' : 'ontem';
+      } else if (q.includes('daqui') || q.includes('in ') || q.includes('em ')) {
+        const n = q.match(/\d+/);
+        if (n && n[0].length < 4) {
+          const days = parseInt(n[0]);
+          targetDate.setDate(targetDate.getDate() + days);
+          foundRelativeDate = true; relativeText = isEN ? `in ${days} days` : `daqui a ${days} dias`;
+        }
+      } else if (q.includes('dia ') || q.includes('day ') || q.includes('on the ')) {
+        const n = q.match(/\d+/);
+        if (n && n[0].length < 4) {
+          targetDate.setDate(parseInt(n[0]));
+          if (explicitYear) targetDate.setFullYear(explicitYear);
+          foundRelativeDate = true; relativeText = isEN ? `on the ${n[0]}` : `no dia ${n[0]}`;
+        }
+      }
+
+      // 1.5 HOLIDAY EXTRACTION (bilingual)
+      for (const h of HOLIDAYS_KEYS.pt) {
+        const matched = h.keys.find(k => q.includes(k));
+        if (matched) {
+          currentHoliday = { name: matched, m: h.m, d: h.d };
+          const yearToUse = explicitYear ? explicitYear : new Date().getFullYear();
+          targetDate = new Date(yearToUse, h.m, h.d);
+          if (!explicitYear && targetDate < new Date() && targetDate.getMonth() !== new Date().getMonth()) {
+            targetDate.setFullYear(yearToUse + 1);
+          }
+          foundRelativeDate = true;
+          const nameClean = matched.charAt(0).toUpperCase() + matched.slice(1);
+          relativeText = isEN
+            ? `on ${nameClean}${explicitYear ? ' ' + explicitYear : ''}`
+            : `no ${nameClean}${explicitYear ? ' de ' + explicitYear : ''}`;
+          break;
+        }
+      }
+
+      // ==========================================
+      // CÉREBRO DE MEMÓRIA (CONTINUIDADE DE PAPO)
+      // ==========================================
+      // Se não tem feriado na frase, mas o usuário mandou um ano (Ex: "E em 2027?") 
+      // Nós herdamos o feriado da memória!
+      if (!currentHoliday && explicitYear && mem.holiday) {
+        currentHoliday = mem.holiday;
+        targetDate = new Date(explicitYear, currentHoliday.m, currentHoliday.d);
+        foundRelativeDate = true;
+        const nameClean = currentHoliday.name.charAt(0).toUpperCase() + currentHoliday.name.slice(1);
+        relativeText = isEN
+          ? `on ${nameClean} ${explicitYear}`
+          : `no ${nameClean} de ${explicitYear}`;
+      }
+
+      // Memory inheritance: follow-up questions keep scale intent
+      if (!currentIntent && !isExtraContent && (q.includes('e') || q.includes('and') || explicitYear || foundRelativeDate) && mem.intent === 'scale') {
+        currentIntent = 'scale';
+      }
+
+      // Update long-term memory
+      if (currentHoliday) mem.holiday = currentHoliday;
+      if (currentIntent) mem.intent = currentIntent; else mem.intent = null;
+      mem.date = targetDate;
+
+      const dateStr = targetDate.toLocaleDateString(locale);
+      let daySuffix = foundRelativeDate
+        ? (isEN ? `(${relativeText}, ${dateStr})` : `(${relativeText}, dia ${dateStr})`)
+        : (isEN ? `(today, ${dateStr})` : `(hoje, dia ${dateStr})`);
+
+      // ==========================================
+      // CONTROLE ATIVO DE EVENTOS E AJUDA
+      // ==========================================
+      const isHelp = /\b(como|ajuda|duvida|mudar|alterar|trocar|how|help|change|what can|what do)\b/i.test(q);
+
+      const isCreateEvent = !isHelp && /\b(agendar|agende|agede|marcar|marque|marca|criar|crie|adicionar|adicione|adiciona|p[oó]e|p[oó]r|botar|bota|anotar|anota|schedule|book|remind|set|add)\b/i.test(q);
+      const isListEvents = !isHelp && (q.includes('o que eu tenho') || q.includes('consultar evento') || q.includes('quais eventos') || q.includes('tem evento') || q.includes('eventos marcados') || q.includes('what do i have') || q.includes('list events') || q.includes('show events') || q.includes('my events') || q.includes('any events'));
+      const isDeleteEvent = !isHelp && /\b(cancelar|desmarcar|apagar|excluir|deletar|cancel|delete|remove|erase)\b/i.test(q);
+
+      if (isCreateEvent) {
+        // 1. Extrai Observação (Começa com 'obs' ou 'observacao')
+        // 1. Extrai Observação (Começa com 'obs' ou 'observacao' ou 'note')
+        let evObs = '';
+        let processableText = rawText;
+        const obsIdx = processableText.search(/\b(obs|observa[cç][aã]o|note)\s*[:=]?/i);
+
+        if (obsIdx !== -1) {
+          evObs = processableText.substring(obsIdx).replace(/\b(obs|observa[cç][aã]o|note)\s*[:=]?/i, '').trim();
+          processableText = processableText.substring(0, obsIdx); // remove obs portion from title search
+        }
+
+        // 2. Extrai Horário (ex: "as 14h", "14:30", "às 08:00", "at 14:00")
+        let evTime = '';
+        const timeRegex = /(?:[aà]s|at)\s?\b(\d{1,2})[h:](\d{2})?\b/i;
+        const timeMatch = processableText.match(timeRegex);
+        if (timeMatch) {
+          const hh = String(timeMatch[1]).padStart(2, '0');
+          const mm = timeMatch[2] ? String(timeMatch[2]).padStart(2, '0') : '00';
+          evTime = `${hh}:${mm}`;
+          processableText = processableText.replace(timeMatch[0], ' ');
+        }
+
+        // 3. Extrai Nome do Evento limpando palavras cruas e ruídos
+        const stopWords = [
+          'quero', 'queria', 'gostaria', 'preciso', 'vou', 'poderia', 'agendar', 'agende', 'agede', 'agente', 'marcar', 'marque', 'marca', 'criar', 'crie', 'adicionar', 'adicione', 'lembrar', 'lembre', 'lembra', 'faz', 'um', 'uma', 'evento', 'para', 'o', 'dia', 'amanha', 'amanhã', 'hoje', 'ontem', 'daqui', 'em', 'as', 'às', 'a', 'e', 'no', 'na', 'do', 'da', 'por', 'favor', 'me',
+          'i', 'want', 'would', 'like', 'need', 'can', 'you', 'could', 'please', 'schedule', 'book', 'set', 'add', 'create', 'make', 'remind', 'an', 'appointment', 'for', 'the', 'day', 'tomorrow', 'today', 'yesterday', 'in', 'at', 'on', 'of'
+        ];
+
+        // Remove a data explicita (se houver) do meio do título
+        processableText = processableText.replace(/\b\d{1,2}\/\d{1,2}(?:\/\d{2,4})?\b/g, ' ');
+
+        let words = processableText.split(/\s+/);
+        words = words.filter(word => {
+          let cleanWord = word.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[.,!?]/g, "");
+          if (!cleanWord) return false;
+          if (/^\d{1,4}$/.test(cleanWord) || cleanWord.includes('/')) return false;
+          return !stopWords.includes(cleanWord);
+        });
+
+        let title = words.join(' ').trim();
+        // Se após a limpeza sobrar muito pouco, usamos um título padrão
+        if (!title || title.length < 2) title = (typeof i18n !== 'undefined' && i18n.lang() === 'en') ? 'Appointment' : 'Compromisso';
+        else title = title.charAt(0).toUpperCase() + title.slice(1);
+
+        const payload = {
+          title: title,
+          date: toDateStr(targetDate),
+          description: evObs || (typeof i18n !== 'undefined' && i18n.lang() === 'en' ? 'Scheduled by Agent Bizu' : 'Agendado pelo Agente Bizu'),
+          category: 'evento'
+        };
+        if (evTime) payload.time = evTime;
+
+        const newId = Date.now() + '-' + Math.random().toString(36).slice(2, 9);
+        payload.id = newId;
+        payload.createdAt = new Date().toISOString();
+        db.ref(`users/${S.currentUser}/events/${newId}`).set(payload);
+
+
+        // Build response
+        let resposta = isEN
+          ? `Done! I scheduled "${title}" for ${daySuffix}. ✅`
+          : `Tudo certo! Agendei "${title}" para ${daySuffix}. ✅`;
+        if (evTime) resposta += isEN ? `<br>⏰ Time: <b>${evTime}</b>` : `<br>⏰ Horário: <b>${evTime}</b>`;
+        if (evObs) resposta += isEN ? `<br>📝 Note: <i>${evObs}</i>` : `<br>📝 Obs: <i>${evObs}</i>`;
+
+        return resposta;
+      }
+
+      if (isListEvents) {
+        const targetDateStr = toDateStr(targetDate);
+        const dailyEvents = S.events.filter(e => e.date === targetDateStr);
+        if (dailyEvents.length === 0) {
+          return isEN
+            ? `You have no events scheduled for ${daySuffix}. Free day! 🏖️`
+            : `Você não tem nenhum evento marcado para ${daySuffix}. Dia livre! 🏖️`;
+        }
+        const eventNames = dailyEvents.map((e, idx) => `${idx + 1}. ${e.title}`).join('\n');
+        return isEN
+          ? `You have ${dailyEvents.length} event(s) ${daySuffix}:\n${eventNames}`
+          : `Você tem ${dailyEvents.length} compromisso(s) ${daySuffix}:\n${eventNames}`;
+      }
+
+      if (isDeleteEvent) {
+        const targetDateStr = toDateStr(targetDate);
+        let dailyEvents = S.events.filter(e => e.date === targetDateStr);
+
+        if (dailyEvents.length === 0) return isEN
+          ? `I found no events for ${daySuffix} to delete.`
+          : `Não encontrei eventos marcados para ${daySuffix} para eu conseguir cancelar.`;
+
+        const stopWordsDel = isEN
+          ? ['i', 'want', 'please', 'cancel', 'delete', 'remove', 'erase', 'the', 'a', 'an', 'event', 'appointment', 'on', 'day', 'of', 'from', 'tomorrow', 'today', 'yesterday', 'for', 'me']
+          : ['quero', 'queria', 'gostaria', 'cancelar', 'desmarcar', 'apagar', 'excluir', 'o', 'a', 'evento', 'compromisso', 'consulta', 'no', 'dia', 'de', 'do', 'da', 'amanha', 'hoje', 'ontem', 'por', 'favor', 'me'];
+        let words = rawText.split(/\s+/).map(w => w.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[.,!?]/g, ""));
+        let searchTitle = words.filter(w => !stopWordsDel.includes(w) && !/^\d/.test(w) && !w.includes('/')).join(' ').trim();
+
+        if (searchTitle.length >= 2) {
+          const matchedEvents = dailyEvents.filter(e => e.title.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").includes(searchTitle));
+          if (matchedEvents.length > 0) dailyEvents = matchedEvents;
+        }
+
+        if (dailyEvents.length === 1) {
+          db.ref(`users/${S.currentUser}/events/${dailyEvents[0].id}`).remove();
+          return isEN
+            ? `Done! I cancelled "${dailyEvents[0].title}" scheduled for ${daySuffix}. 🗑️`
+            : `Feito! Cancelei "${dailyEvents[0].title}" que estava marcado para ${daySuffix}. 🗑️`;
+        } else {
+          return isEN
+            ? `You have ${dailyEvents.length} similar events on ${daySuffix} (e.g. ${dailyEvents.map(e => e.title).join(', ')}). Go back to the main calendar and delete the correct one manually.`
+            : `Você tem ${dailyEvents.length} eventos parecidos ${daySuffix} (Ex: ${dailyEvents.map(e => e.title).join(', ')}). Vá até a tela principal da agenda clicando em voltar e apague manualmente o correto!`;
+        }
+      }
+
+      // 3. NEXT DAY OFF (bilingual)
+      const isNextOff = q.includes('proxima folga') || q.includes('quando folgo') || q.includes('quando e minha folga')
+        || q.includes('next day off') || q.includes('when is my day off') || q.includes('when do i have off') || q.includes('next off');
+      if (isNextOff) {
+        if (!S.userScale) return isEN
+          ? "I'd love to tell you, but I don't know your schedule yet! Set it up in the agenda first. 😉"
+          : "Eu adoraria te dizer, mas ainda não conheço sua escala! Configure ela na agenda primeiro. 😉";
+        let scan = new Date();
+        for (let i = 1; i <= 60; i++) {
+          scan.setDate(scan.getDate() + 1);
+          if (checkOff(scan)) return isEN
+            ? `Your next day off is ${scan.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}. Hang in there! 🚀`
+            : `Sua próxima folga será no dia ${scan.toLocaleDateString('pt-BR')} (${scan.toLocaleDateString('pt-BR', { weekday: 'long' })}). Aguenta firme! 🚀`;
+        }
+        return isEN ? "No days off found in the next 60 days. Check your schedule!" : "Não encontrei folgas nos próximos 60 dias. Verifique sua escala!";
+      }
+
+      // Removed duplicate specific date scale check block as it conflicts with section 4
+
+      const PIADAS = isEN ? [
+        "Why did the robot go to the eye doctor? Because it needed a vision update! 😂",
+        "Why is a shift worker's schedule like a cell phone? Because it often says 'Out of service'! 🤣",
+        "What did the programmer say at the barbecue? The meat is bugged! 🍖",
+        "Why did the math book commit suicide? Because it had too many problems. 📚",
+        "What did one decimal say to another? 'Get the point?' 📍",
+        "Why don't skeletons fight each other? They don't have the guts! 💀",
+        "How do you organize a space party? You 'planet'! 🚀",
+        "What do you call a fake noodle? An Impasta! 🍝"
+      ] : [
+        "Por que o robô foi ao oculista? Porque precisava de uma nova atualização de visão! 😂",
+        "Por que a escala do policial é igual ao celular? Porque às vezes dá um sinal de 'fora da área'! 🤣",
+        "Qual o cúmulo da escala? Trabalhar no feriado e sonhar que está folgando. 😅",
+        "O que o programador disse no churrasco de folga? O código está bom, mas a carne está bugada! 🍖",
+        "Por que o bombeiro usa coldre? Pra segurar o 'fogo'! Ahahaha!",
+        "Um trabalhador por turnos e um sono de 8h nunca foram apresentados oficialmente. 😴",
+        "Por que o livro de matemática se suicidou? Porque tinha muitos problemas. 📚",
+        "O que um ponto diz ao outro? 'Ponto para nós'! 📍",
+        "Sabe por que a galinha não atravessou a rua? Porque ela estava de folga! 🐓",
+        "Por que a escala 12x36 é romântica? Porque te vejo hoje, mas amanhã eu descanso de você! 😍",
+        "O que cai em pé e corre deitado? A chuva... e quem trabalha 24h! 😂",
+        "Por que o jacaré tirou o jacarezinho da escola? Porque ele 'ré-p-tiu'! 😂",
+        "Como se chama um cachorro que faz mágica? Um Abracadabrador! 🐶",
+        "O que é um pontinho preto no meio da neve? Um 'pinguim-menta'! 🐧",
+        "Sabe qual a ferramenta favorita do Agente? O 'Bizu-al' studio code! 😉",
+        "Por que o policial não gosta de gelatina? Porque ela 'treme' na frente dele! 👮‍♂️",
+        "Piada de escalas: Você está de folga hoje? Estou, mas meu coração está no plantão! 💔",
+        "Qual a música favorita da escala? 'Hoje eu vou trabalhar, mas amanhã eu vou descansar'! 🎶",
+        "O que o pneu disse para o asfalto? 'Estou rodado de tanto trabalhar'! 🚗",
+        "Como o mudo agendou o evento? Ele fez um 'check-point' no calendário! 📅",
+        "A vida de plantão é como um jogo de baralho: se tem 'copas', tem que ter paciência! ♠️",
+        "A economia está tão ruim que até a lâmpada do Aladim está funcionando por escala! 💡",
+        "Se o trabalho fosse bom, não pagariam a gente, né? Brincadeira! 😂",
+        "Qual o santo protetor das folgas? Santo Antônio do 'Descanso'! 🙏",
+        "O que é um pontinho roxo na agenda? O Agente Bizu cuidando de você! 💜"
+      ];
+
+      const FILMES = isEN ? [
+        "🎬 **Inception**: Excellent for those who want to challenge the mind while resting.",
+        "🎬 **The Truman Show**: A deep insight into the reality we live in. Incredible.",
+        "🎬 **The Intern**: Great for relaxing and valuing experience.",
+        "🎬 **Gladiator**: Timeless. Shows what real focus and persistence look like.",
+        "🎬 **Parasite**: An intense film that won't let you blink.",
+        "🎬 **The Office (Series)**: Essential for laughing at workplace situations.",
+        "🎬 **John Wick**: Absolute focus on the mission. Unbeatable.",
+        "🎬 **Top Gun: Maverick**: Pure adrenaline for your day off.",
+        "🎬 **Interstellar**: Time is precious, and love is the only thing that travels through it."
+      ] : [
+        "🎬 **Inception (A Origem)**: Excelente para quem quer desafiar a mente enquanto descansa.",
+        "🎬 **O Show de Truman**: Um bizu sobre a realidade que vivemos. Incrível.",
+        "🎬 **The Intern (Um Senhor Estagiário)**: Ótimo para relaxar e valorizar a experiência.",
+        "🎬 **Gladiador**: Atemporal. Mostra o que é foco e persistência real.",
+        "🎬 **Parasita**: Um filme intenso que não te deixa piscar (igual a um plantão).",
+        "🎬 **The Office (Série)**: Essencial para quem quer rir das situações de trabalho.",
+        "🎬 **Busca Implacável**: Força e agilidade. O mestre do 'alfa/bravo'.",
+        "🎬 **Top Gun: Maverick**: Pura adrenalina para assistir antes de um turno agitado.",
+        "🎬 **Arremesso de Ouro**: História de superação inspiradora para o seu dia a dia.",
+        "🎬 **O Lobo de Wall Street**: Intensidade máxima (com moderação!).",
+        "🎬 **O Ultimato Bourne**: Agilidade e raciocínio rápido, como todo bom profissional.",
+        "🎬 **Ratatouille**: Às vezes, o bizu vem de onde a gente menos espera! 🐀",
+        "🎬 **Duro de Matar**: O clássico para quem trabalha enquanto os outros festejam.",
+        "🎬 **Velozes e Furiosos**: Para sua folga passar voando (mas dirija com cuidado!).",
+        "🎬 **O Resgate do Soldado Ryan**: Exemplo de união de equipe em situações extremas.",
+        "🎬 **Whiplash**: Mostra que a perfeição exige dedicação total ao seu ofício.",
+        "🎬 **Ford vs Ferrari**: Competição e inovação pura na pista.",
+        "🎬 **Vingadores (Ultimato)**: O maior trabalho de equipe de todos os tempos.",
+        "🎬 **Indiana Jones**: Um mergulho na aventura para esquecer os relatórios.",
+        "🎬 **O Discurso do Rei**: Coragem para superar seus próprios limites internos.",
+        "🎬 **Interestelar**: Mostra que o tempo é valioso e o amor é a única coisa que viaja por ele.",
+        "🎬 **John Wick**: Foco absoluto no objetivo final. Imbatível.",
+        "🎬 **Matrix**: Já pensou se sua escala fosse apenas uma simulação? 🕶️",
+        "🎬 **O Show de Truman**: Um bizu sobre a realidade que vivemos. Incrível.",
+        "🎬 **O Terminal**: Paciência é a chave para aguentar esperas longas.",
+        "🎬 **Fragmentado**: Para quem sente que tem 10 personalidades diferentes no turno!"
+      ];
+
+      const BIBLIA = isEN ? [
+        "📖 **Philippians 4:13**: 'I can do all things through Christ who strengthens me.'",
+        "📖 **Psalm 23:1**: 'The Lord is my shepherd; I shall not want.'",
+        "📖 **Psalm 91:11**: 'For he will command his angels concerning you to guard you in all your ways.'",
+        "📖 **Joshua 1:9**: 'Be strong and courageous. Do not be afraid; do not be discouraged.'",
+        "📖 **Proverbs 3:5**: 'Trust in the Lord with all your heart.'",
+        "📖 **Matthew 11:28**: 'Come to me, all you who are weary and burdened, and I will give you rest.'"
+      ] : [
+        "📖 **Filipenses 4:13**: 'Tudo posso naquele que me fortalece.'",
+        "📖 **Salmo 23:1**: 'O Senhor é o meu pastor; nada me faltará.'",
+        "📖 **Salmo 91:11**: 'Porque aos seus anjos dará ordens a teu respeito, para te guardarem em todos os teus caminhos.'",
+        "📖 **Isaías 40:31**: 'Mas os que esperam no Senhor renovam as suas forças...'",
+        "📖 **Mateus 6:34**: 'Portanto, não vos inquieteis com o dia de amanhã...'",
+        "📖 **Josué 1:9**: 'Seja forte e corajoso! Não se apavore nem desanime.'",
+        "📖 **Provérbios 16:3**: 'Confia ao Senhor as tuas obras, e teus pensamentos serão estabelecidos.'",
+        "📖 **Salmo 121:2**: 'O meu socorro vem do Senhor, que fez o céu e a terra.'",
+        "📖 **Jeremias 29:11**: 'Pois sou eu que conheço os planos que tenho para vocês, diz o Senhor.'",
+        "📖 **2 Timóteo 1:7**: 'Pois Deus não nos deu espírito de covardia, mas de poder e amor.'",
+        "📖 **Mateus 11:28**: 'Vinde a mim todos os que estais cansados e sobrecarregados.'",
+        "📖 **Filipenses 4:6**: 'Não andeis ansiosos por coisa alguma.'",
+        "📖 **João 14:27**: 'Deixo-vos a paz, a minha paz vos dou.'",
+        "📖 **Provérbios 3:5**: 'Confia no Senhor de todo o teu coração.'",
+        "📖 **Salmo 37:5**: 'Entrega o teu caminho ao Senhor; confia nele, e ele tudo fará.'",
+        "📖 **Isaías 41:10**: 'Não temas, porque eu sou contigo; não te assombres.'",
+        "📖 **1 Coríntios 16:14**: 'Façam tudo com amor.'",
+        "📖 **Gálatas 6:9**: 'E não nos cansemos de fazer o bem, pois no tempo próprio colheremos.'",
+        "📖 **Romanos 8:31**: 'Se Deus é por nós, quem será contra nós?'",
+        "📖 **Eclesiastes 3:1**: 'Tudo tem o seu tempo determinado.'",
+        "📖 **Salmo 46:1**: 'Deus é o nosso refúgio e fortaleza, socorro bem presente na angústia.'",
+        "📖 **Tiago 1:5**: 'E, se algum de vós tem falta de sabedoria, peça-a a Deus.'",
+        "📖 **Lamentações 3:22**: 'As misericórdias do Senhor são a causa de não sermos consumidos.'",
+        "📖 **1 Pedro 5:7**: 'Lançando sobre ele toda a vossa ansiedade, porque ele tem cuidado de vós.'",
+        "📖 **Salmo 118:24**: 'Este é o dia que fez o Senhor; regozijemo-nos e alegremo-nos nele.'"
+      ];
+
+      const MOTIVACAO = isEN ? [
+        "💡 'Success is the sum of small efforts repeated day in and day out.'",
+        "💡 'Discipline is the bridge between goals and accomplishment. Stay strong!'",
+        "💡 'Your only competition is who you were yesterday. Evolve every shift.'",
+        "💡 'Organization is the first step to a productive life.'",
+        "💡 'Don't stop when you're tired, stop when you're done!'"
+      ] : [
+        "💡 'O sucesso é a soma de pequenos esforços repetidos dia após dia.'",
+        "💡 'A disciplina é a ponte entre metas e realizações. Continue firme!'",
+        "💡 'Sua única competição é quem você foi ontem. Evolua a cada turno.'",
+        "💡 'O cansaço de hoje é a glória de amanhã. Não pare agora!'",
+        "💡 'Grandes batalhas só são dadas a grandes guerreiros. Força no Bizu!'",
+        "💡 'A organização da sua agenda é a organização da sua mente.'",
+        "💡 'Para chegar onde a maioria não chega, você precisa fazer o que a maioria não faz.'",
+        "💡 'Seja mais forte que sua melhor desculpa. O plantão te espera!'",
+        "💡 'O impossível é apenas uma opinião de quem não tentou o suficiente.'",
+        "💡 'Não olhe para o relógio, faça o que ele faz. Continue correndo!'",
+        "💡 'A persistência é o caminho do êxito. Cada dia conta.'",
+        "💡 'O seu trabalho é essencial. Valorize cada segundo do seu serviço.'",
+        "💡 'Mantenha o foco nos seus sonhos, mesmo quando a escala apertar.'",
+        "💡 'O otimismo é o ímã da felicidade. Pense positivo!'",
+        "💡 'Acredite em você. O Agente Bizu já acredita!'",
+        "💡 'Onde há vontade, há um caminho. Encontre o seu hoje.'",
+        "💡 'Não pare quando estiver cansado, pare quando tiver terminado.'",
+        "💡 'Excelência não é um ato, mas um hábito. Construa o seu.'",
+        "💡 'Sua atitude, não sua aptidão, determinará sua altitude.'",
+        "💡 'Se você pode sonhar, você pode fazer. Coloque na agenda!'",
+        "💡 'O conhecimento é o único tesouro que ninguém pode tirar de você.'",
+        "💡 'Seja a luz no turno de quem está tendo um dia difícil.'",
+        "💡 'Cada pequeno passo te deixa mais perto da sua grande meta.'",
+        "💡 'O suor de hoje é o sorriso de amanhã. Vá com tudo!'",
+        "💡 'A paz de espírito vem da consciência de um trabalho bem feito!'"
+      ];
+
+      if (q.includes('piada') || q.includes('faca rir') || q.includes('contar algo engracado') || q.includes('joke') || q.includes('funny') || q.includes('make me laugh') || q.includes('tell me a joke')) return rand(PIADAS);
+      if (q.includes('filme') || q.includes('indicacao') || q.includes('sugestao de filme') || q.includes('movie') || q.includes('film') || q.includes('watch') || q.includes('recommend')) return rand(FILMES);
+      if (q.includes('biblia') || q.includes('versiculo') || q.includes('palavra de deus') || q.includes('bible') || q.includes('verse') || q.includes('scripture') || q.includes('god') || q.includes('faith')) return rand(BIBLIA);
+      if (q.includes('motivacao') || q.includes('motiva') || q.includes('frase') || q.includes('inspire') || q.includes('motivation') || q.includes('quote')) return rand(MOTIVACAO);
+
+      // 4. CONSULTA DE ESCALA (Contextual ou Explícita)
+
+      if (currentIntent === 'scale') {
+        if (!S.userScale) return isEN
+          ? "To check your schedule, you need to set it up in the ViewGo agenda by clicking the schedule button at the top."
+          : "Para eu consultar sua escala, você precisa configurá-la na agenda ViewGo clicando no botão de escala no topo da agenda.";
+        const isOff = checkOff(targetDate);
+        const respFolga = isEN
+          ? [`Great news! ${daySuffix} you are OFF! 🎉`, `${daySuffix} is your rest day! 😎`, `Celebrate! ${daySuffix} you have the day off!`]
+          : [`Boas notícias! ${daySuffix} você está de FOLGA! 🎉`, `${daySuffix} é o seu dia de descanso! 😎`, `Pode comemorar! ${daySuffix} você está de FOLGA!`];
+        const respTrampo = isEN
+          ? [`Hmm... ${daySuffix} you WORK. ☕`, `${daySuffix} is a work day! 🚀`, `Yep, ${daySuffix} you work. Keep it up!`]
+          : [`Ih... ${daySuffix} você tem TRABALHO. ☕`, `${daySuffix} é dia de serviço! 🚀`, `Hop, ${daySuffix} você trabalha. Força aí!`];
+        const perguntouFolga = isEN
+          ? (q.includes('off') || q.includes('rest') || q.includes('free') || !q.includes('work'))
+          : (q.includes('folga') || q.includes('livre') || q.includes('descans') || !q.includes('trabalho'));
+        return perguntouFolga ? (isOff ? rand(respFolga) : rand(respTrampo)) : (!isOff ? rand(respTrampo) : rand(respFolga));
+      }
+
+      // 5. KNOWLEDGE BASE (bilingual)
+      const K = isEN ? {
+        // --- Greetings ---
+        'hello': 'Hello! How can I help you with your schedule today? 🦾',
+        'hi': 'Hi there! Try asking something like "Am I off tomorrow?" to get started!',
+        'hey': 'Hey! What can I do for you today? 😊',
+        'good morning': 'Good morning! Hope your shift is smooth and productive! ☕',
+        'good afternoon': 'Good afternoon! How is your schedule going?',
+        'good evening': 'Good evening! Have you checked your events for tomorrow?',
+        'good night': 'Good night! Rest well — you deserve it!',
+        'thank': 'You\'re welcome! I\'m here to make your schedule life easier. 💪',
+        'thanks': 'Anytime! Just call the Agent whenever you need.',
+        'who are you': 'I\'m Agent Bizu, your personal schedule and shift assistant!',
+        'who made you': 'I was built to be the most efficient assistant for shift workers!',
+        'work': 'Work is important, but resting on your days off is essential! How is your schedule?',
+        'tired': 'Tough shift, huh? Have you checked when your next day off is?',
+        'vacation': 'Vacation? Wonderful! You can mark that period in the agenda as a long event.',
+        'weekend': 'For shift workers, the "weekend" is any day off! Will you work tomorrow?',
+        'sunday': 'Sunday counts too! If it\'s a work day, full focus; if it\'s a day off, enjoy it!',
+        'how do you work': 'I understand natural language. Ask me to schedule things, check days off, or get tips.',
+        'schedule alfa': 'Alfa Group has a specific cycle. Have you synced it at the top of the screen?',
+        'schedule bravo': 'Bravo Group here! Make sure your reference date is correct in the schedule menu.',
+        'tip': 'Tip: Swipe event cards sideways on the main screen for quick options!',
+        'security': 'Your data is safely stored in our cloud database. ☁️',
+        'lost': 'Lost an event? Try the search icon (🔍) at the top of the agenda!',
+        'search': 'To search for events, use the search tab (magnifying glass icon 🔍) at the top of the agenda and type the event name.',
+        'calendar': 'The main calendar shows purple dots on work days. Keep an eye out!',
+        'clear': 'To clear your custom sequence, use the "Clear" button in the schedule settings.',
+        'late': 'Running late? Check if you have another commitment today first.',
+        'birthday': 'Birthdays are important! Mark them as yearly events so you never forget.',
+        'reminder': 'You remind me? Just kidding — I store everything neatly!',
+        'productivity': 'An organized agenda is the first step to a productive life. 📈',
+        'focus': 'Keep focus on your goals, even on the most tiring shift days.',
+        'sleep': 'Sleep is sacred for shift workers. Is your alarm set?',
+        'coffee': 'Coffee is the fuel of every shift worker! ☕',
+        'study': 'Use your days off to invest in yourself. Learning opens doors!',
+        'family': 'A day off with family is the best rest. Cherish every moment.',
+        'friends': 'How about planning a barbecue on your next day off? I can schedule it!',
+        'health': 'Don\'t forget your check-ups. Your health comes before any shift.',
+        'gym': 'Working out helps you handle the demands of shift work. Schedule your sessions here!',
+        'diet': 'Eating well on shifts makes a big difference in your energy level.',
+        'holiday': 'Holidays often change the rhythm. I know all national holidays!',
+        'christmas': 'Christmas with family is the goal! Check your schedule to see if you work.',
+        'new year': 'New Year — a time for renewal. Where will you be at midnight?',
+        'carnival': 'Street parade or total rest? Carnival is a lively time.',
+        'trip': 'Planning a trip? Mark the dates so I know when you\'re away!',
+        'money': 'Tracking your extra income helps at month\'s end. Use event notes!',
+        'night shift': 'Night work requires extra rest during the day.',
+        'shift': 'On a 12x36 or 24x72 shift? I understand almost all cycles!',
+        'cycle': 'Your shift cycle can be manually adjusted if it\'s not Alfa or Bravo.',
+        'bug': 'Noticed something wrong? Restart the app and if it persists, contact support!',
+        'update': 'We\'re always bringing new features to make your agenda more Bizu!',
+        'color': 'Purple was chosen for being a premium, modern color. Do you like it?',
+        'offline': 'The agenda needs internet to save your data safely.',
+        'export': 'Soon you\'ll be able to export your events to PDF!',
+        'calm': 'Glad everything is calm! Enjoy the moment.',
+        'stress': 'Breathe deep. The agenda is here to take the worry off your mind.',
+        'meditation': 'Five minutes of stillness work wonders for your mind.',
+        'music': 'Working with music helps time pass faster, don\'t you think?',
+        'movie': 'Day-off tip: catch up on movies! Popcorn approved.',
+        'series': 'Careful not to binge and miss the next shift! 😅',
+        'book': 'Reading a little before bed helps you disconnect from work.',
+        'game': 'Gaming on your day off? A great way to relax your mind.',
+        'soccer': 'Is there a game today? Mark the kickoff time so you don\'t miss it!',
+        'football': 'Any game today? Mark the time so you\'re ready!',
+        'run': 'Running clears the mind and improves stamina for daily life.',
+        'peace': 'Wishing you a peaceful and safe shift.',
+        'success': 'Success comes from consistency. Keep organizing!',
+        'goal': "What's your goal this month? Add it as a reminder!",
+        'dream': 'Work hard, but never forget your bigger dreams.',
+        'career': 'Organizing your routine is the first step to career growth.',
+        'boss': 'A good relationship with your boss starts with punctuality. Use the agenda!',
+        'colleague': 'A good work environment makes every shift feel lighter.',
+        'lunch': 'Don\'t skip lunch! Your body needs energy.',
+        'dinner': 'A light dinner before a night shift is the best choice.',
+        'snack': 'Always have a quick snack in your bag for emergencies during the shift.',
+        'water': 'Have you had water today? Hydration is key! 💧',
+        'party': 'Enjoy the party, but check if you have an early event the next day!',
+        'wedding': 'Weddings are elegant events. Schedule it well in advance!',
+        'meeting': 'Boring meetings? At least you\'ll have a reminder so you don\'t forget.',
+        'document': 'Remember to bring your documents to work today.',
+        'traffic': 'Leave a bit early if traffic is bad. Check Maps!',
+        'car': 'Have you checked the oil and fuel this week?',
+        'bike': 'Cycling is great exercise and saves fuel.',
+        'walk': 'If you live close by, a walk before work helps you wake up.',
+        'organization': 'ViewGo Agenda: The name says it all. Total organization for you.',
+        'bizu': 'Bizu is that golden tip. And I am the Agent of that tip!',
+        'future': 'The future belongs to those who prepare today. Stay organized!',
+        'past': 'What\'s done is done. Focus on the events ahead!',
+        'present': 'The present is a gift! Enjoy every second of your day.',
+        'gratitude': 'Gratitude transforms what we have into enough.',
+        'how do i know': "On the main screen, DAY OFF days are those without the purple dot. If the day is 'clean', you're resting! 🎉",
+        'am i off today': "Let me check! Ask 'Am I off today?' with the word 'off' and 'today'. 😉",
+        'bye': 'See you later! I\'ll be here whenever you need a tip! 👋',
+        'goodbye': "Don't say goodbye, say 'until the next day off'! I'll be here.",
+        'ok': 'Got it! Let me know if you need anything else. 👍',
+        'okay': 'Sure thing! Just ask whenever you need. 😊',
+        'yes': 'Great! What would you like to do next?',
+        'no': 'No problem! Feel free to ask anything else.',
+      } : {
+        'ola': 'Olá! Como posso ajudar você com sua agenda hoje? 🦾',
+        'oi': 'Oi! Tudo bem? Digite algo como "que dia eu folgo?" para começar!',
+        'bom dia': 'Bom dia! Que seu turno seja tranquilo e produtivo! ☕',
+        'boa tarde': 'Boa tarde! Como está o andamento da sua escala?',
+        'boa noite': 'Boa noite! Já conferiu seus compromissos de amanhã?',
+        'obrigado': 'De nada! Estou aqui para facilitar sua vida de escala. 💪',
+        'valeu': 'Tamo junto! Qualquer coisa é só chamar o Agente Bizu.',
+        'quem e voce': 'Eu sou o Agente Bizu, seu assistente pessoal de agenda e escalas!',
+        'quem te criou': 'Fui criado para ser o assistente mais eficiente de quem trabalha por turnos!',
+        'trabalhar': 'Trabalhar é importante, mas descansar na folga é essencial! Como está sua escala?',
+        'cansado': 'Puxado, né? Já deu uma olhada em quando será seu próximo descanso?',
+        'ferias': 'Férias? Que maravilha! Você pode marcar esse período na agenda como um evento longo.',
+        'sextou': 'Para quem trabalha por escala, o "sextou" é o dia da folga! Amanhã você trampa?',
+        'domingo': 'Domingo também é dia! Se for trabalho, foco total; se for folga, aproveite!',
+        'como voce funciona': 'Eu entendo textos naturais. Você pode me pedir para agendar coisas, ver folgas ou tirar dúvidas.',
+        'agendar': 'Diga algo como "Agende médico amanhã às 14h" e eu cuido de tudo!',
+        'escala alfa': 'O Grupo Alfa tem um ciclo específico. Já sincronizou o seu no topo da tela?',
+        'escala bravo': 'Grupo Bravo na área! Verifique se sua data de referência está correta no menu de escala.',
+        'dica': 'Dica: Arraste os cards de eventos para o lado na tela principal para ver opções rápidas!',
+        'seguranca': 'Seus dados são salvos com segurança no nosso banco de dados na nuvem. ☁️',
+        'perdi': 'Perdeu algum evento? Tente usar a busca (lupa) no topo da agenda!',
+        'lupa': 'A lupa serve para pesquisar eventos antigos ou futuros rapidamente pelo nome.',
+        'pesquisar': 'Para pesquisar, use a aba de busca (ícone de lupa 🔍) no topo da agenda e digite o nome do evento.',
+        'calendario': 'O calendário principal mostra círculos roxos nos dias de trabalho. Fique atento!',
+        'limpar': 'Para limpar sua sequência personalizada, use o botão "Limpar" no menu de ajuste de escala.',
+        'atrasado': 'Ih, corre! Mas antes, veja se não tem outro compromisso hoje.',
+        'aniversario': 'Aniversários são importantes! Marque como um evento anual para nunca esquecer.',
+        'lembrete': 'Se eu esquecer, você me avisa? Brincadeira, eu guardo tudo direitinho!',
+        'produtividade': 'Uma agenda organizada é o primeiro passo para uma vida produtiva. 📈',
+        'foco': 'Mantenha o foco nos seus objetivos, mesmo nos dias mais cansativos de escala.',
+        'dormir': 'Sono é sagrado para quem faz turno. Já colocou o despertador?',
+        'cafe': 'Café é o combustível do trabalhador por escala! ☕',
+        'estudar': 'Aproveite suas folgas para investir em você. Estudar abre portas!',
+        'familia': 'Folga com a família é o melhor descanso. Aproveite cada minuto.',
+        'amigos': 'Que tal marcar um churrasco na próxima folga? Posso agendar para você!',
+        'saude': 'Não esqueça dos check-ups. Sua saúde vem antes de qualquer escala.',
+        'academia': 'Treinar ajuda a aguentar o tranco do trabalho. Marque seus treinos aqui!',
+        'dieta': 'Comer bem nos plantões faz toda a diferença no nível de energia.',
+        'chuva': 'Dia de chuva pede uma escala mais tranquila, se possível.',
+        'sol': 'Folga com sol? Praia ou parque na certa! ☀️',
+        'frio': 'Trabalhar no frio exige um casaco extra e muito café.',
+        'calor': 'Mantenha-se hidratado durante o serviço, especialmente no calor forte.',
+        'feriado': 'Feriado costuma mudar o ritmo. Eu conheço todos os feriados nacionais!',
+        'pascoa': 'Chocolate na folga é bom demais. Vai trabalhar no domingo de Páscoa?',
+        'natal': 'Natal em família é meta! Confira sua escala para ver se caiu trabalho.',
+        'ano novo': 'Virada de ano é tempo de renovação. Onde você estará na virada?',
+        'carnaval': 'Bloco de rua ou descanso total? O Carnaval é uma época animada.',
+        'viagem': 'Planejando viajar? Marque as datas para eu não te incomodar com folgas!',
+        'dinheiro': 'Controlar os extras ajuda no fechamento do mês. Use as notas dos eventos!',
+        'noturno': 'Trabalho à noite exige um descanso dobrado durante o dia.',
+        'plantao': 'Plantão de escala 12x36 ou 24x72? Eu entendo quase todos os ciclos!',
+        'ciclo': 'Seu ciclo de escala pode ser ajustado manualmente se não for Alfa ou Bravo.',
+        'bug': 'Viu algo errado? Reinicie o app e, se persistir, avise o suporte!',
+        'atualizacao': 'Sempre trazemos novidades para deixar sua agenda mais Bizu!',
+        'cor': 'O roxo foi escolhido por ser uma cor premium e moderna. Gostou?',
+        'logo': 'Nossa logo representa a organização e o fluxo do tempo.',
+        'nome da conta': 'O seu ID de 7 dígitos é sua chave única. Guarde com carinho!',
+        'senha': 'Se esquecer a senha, entre em contato com o administrador.',
+        'offline': 'A agenda precisa de internet para salvar seus dados com segurança.',
+        'exportar': 'Em breve você poderá exportar seus eventos para o PDF!',
+        'importar': 'Trazer dados de outras agendas é um plano futuro. Aguarde!',
+        'tranquilo': 'Que bom que está tudo tranquilo! Aproveite o momento.',
+        'estresse': 'Respire fundo. A agenda está aqui para tirar a preocupação da sua cabeça.',
+        'meditacao': 'Cinco minutos de pausa fazem milagres pela sua mente.',
+        'musica': 'Trabalhar com música ajuda o tempo a passar mais rápido, não acha?',
+        'filme': 'Dica de folga: coloque os filmes em dia! Pipoca liberada.',
+        'serie': 'Cuidado para não maratonar e perder o horário do próximo turno!',
+        'livro': 'Ler um pouco antes de dormir ajuda a desligar do trabalho.',
+        'jogo': 'Games na folga? É uma ótima forma de relaxar a mente.',
+        'futebol': 'Vai ter jogo hoje? Marque o horário para não perder o início!',
+        'academia': 'Hoje é dia de perna ou braço? O importante é não faltar!',
+        'corrida': 'Correr limpa a alma e melhora o fôlego para o dia a dia.',
+        'paz': 'Desejo a você um turno de muita paz e segurança.',
+        'sucesso': 'O sucesso vem da constância. Continue se organizando!',
+        'meta': 'Qual sua meta para este mês? Anote como um lembrete!',
+        'sonho': 'Trabalhe duro, mas nunca esqueça dos seus sonhos maiores.',
+        'carreira': 'Organizar sua rotina é o primeiro passo para subir na carreira.',
+        'chefe': 'Relação boa com o chefe começa com pontualidade. Use a agenda!',
+        'colega': 'Um bom ambiente de trabalho faz a escala parecer mais leve.',
+        'almoco': 'Não pule o horário de almoço! Seu corpo precisa de energia.',
+        'jantar': 'Jantar leve antes de um plantão noturno é a melhor escolha.',
+        'lanche': 'Tenha sempre um lanche rápido na mochila para emergências no turno.',
+        'agua': 'Já bebeu água hoje? Hidratação é fundamental! 💧',
+        'bebida': 'Moderação é a chave, especialmente se você trabalha amanhã.',
+        'festa': 'Aproveite a festa, mas confira se não tem evento cedo no dia seguinte!',
+        'casamento': 'Casamentos são eventos de gala. Marque com antecedência!',
+        'batizado': 'Momentos em família são únicos. Registre na agenda.',
+        'reuniao': 'Reuniões chatas? Pelo menos você terá um lembrete para não esquecer.',
+        'documento': 'Não esqueça de levar seus documentos para o trabalho hoje.',
+        'transito': 'Saia um pouco antes se o trânsito estiver ruim. Olhe o Waze!',
+        'onibus': 'Confira o horário do Circular para não chegar atrasado.',
+        'carro': 'Já checou o óleo e o combustível do carro essa semana?',
+        'moto': 'Cuidado redobrado na chuva se você vai de moto para o serviço.',
+        'bicicleta': 'Ir de bike é um ótimo exercício e economiza combustível.',
+        'caminhar': 'Se morar perto, uma caminhada antes do trampo ajuda a despertar.',
+        'organizacao': 'ViewGo Agenda: O nome diz tudo. Organização total para você.',
+        'bizu': 'Bizu é aquela dica de ouro. E eu sou o Agente dessa dica!',
+        'futuro': 'O futuro pertence a quem se prepara hoje. Boa organização!',
+        'presente': 'O agora é o que importa. Viva seu turno com presença!',
+        'passado': 'O que passou, passou. Foco nos eventos que vêm pela frente!',
+        'agradecer': 'A gratidão transforma o que temos em suficiente.',
+        'como eu sei que estou de folga': 'Na tela principal da agenda, os dias de FOLGA são aqueles que NÃO possuem a bolinha roxa. Se o dia estiver "limpo", ou com uma marcação verde suave, significa que você está descansando! 🎉',
+        // --- GESTÃO E CARREIRA ---
+        'salario': 'O seu esforço de hoje é o resultado de amanhã. Controle bem seus ganhos!',
+        'promocao': 'Para ser promovido, faça o comum de forma incomum. Organização é 50% do caminho!',
+        'curso': 'Já pensou em usar sua próxima folga para um curso online? Investimento em você nunca é demais.',
+        'networking': 'Mantenha boa relação com seus colegas de turno. O bizu de hoje pode ser a vaga de amanhã.',
+        'lideranca': 'Liderar é servir. Se você coordena uma equipe, dê o exemplo na organização.',
+        'ponto': 'Não esqueça de bater seu ponto! Erros de registro de horário dão uma dor de cabeça enorme.',
+        'extra': 'Trabalhar extra é bom para o bolso, mas cuidado para não queimar a largada e ficar exausto.',
+        // --- SAÚDE E BEM ESTAR ---
+        'agua': 'Beba água! Turnos longos desidratam e tiram o foco. Mantenha a garrafinha de 2L por perto.',
+        'marmita': 'Dica de marmita: Arroz integral, uma proteína e legumes dão energia duradoura para o plantão.',
+        'fruta': 'Troque o biscoito por uma fruta no lanche da tarde. O açúcar natural ajuda na concentração.',
+        'postura': 'Sente direito! Sua coluna vai agradecer quando você tiver 60 anos.',
+        'visao': 'Descanso de tela: a cada 20 minutos, olhe para algo a 6 metros de distância por 20 segundos.',
+        'estresse': 'Sentiu o estresse subir? Respire fundo 3 vezes, segurando 4 segundos cada ar.',
+        'ansiedade': 'Foca no hoje. O que você pode resolver agora? Deixe o resto para o Agente anotar.',
+        'depressao': 'Você não está sozinho. Se estiver pesado demais, procure ajuda profissional. Sua mente é sagrada.',
+        'vitamina': 'Sol é vida! Tente pegar 15 minutinhos de sol na sua folga para a Vitamina D.',
+        // --- ENTRETENIMENTO ---
+        'netflix': 'Dica de série: "The Bear" para ver o caos da escala, ou "The Office" para rir do trabalho.',
+        'youtube': 'No YouTube, recomendo canais de produtividade como o do Tiago Forte (Second Brain).',
+        'podcast': 'Ouvir podcasts no trajeto para o trampo faz o tempo passar voando.',
+        'rock': 'Nada como um bom rock para dar energia no meio do turno noturno.',
+        'pop': 'Música animada ajuda a manter o ritmo nas tarefas repetitivas.',
+        'sertanejo': 'O sertanejo combina com aquela folga no churrasco com os amigos.',
+        'pagode': 'Sextou na folga? Um pagodinho é o bizu certo para relaxar.',
+        'lofi': 'Música Lo-Fi é excelente para focar em relatórios ou estudos na folga.',
+        // --- CURIOSIDADES ---
+        'espaco': 'Você sabia que o silêncio no espaço é absoluto porque não há ar para o som viajar?',
+        'oceano': 'Conhecemos mais a superfície de Marte do que as profundezas dos nossos próprios oceanos.',
+        'tempo': 'Um dia em Vênus é mais longo do que um ano em Vênus. Loucura, né?',
+        'corpo': 'Seu corpo produz cerca de 25 milhões de células novas a cada segundo.',
+        'internet': 'O primeiro e-mail foi enviado em 1971. Hoje mandamos bilhões por dia.',
+        // --- MOTIVAÇÃO DIÁRIA ---
+        'nao desista': 'Grandes coisas levam tempo. Continue firme na sua escala!',
+        'voce consegue': 'Se você chegou até aqui, tem força para ir muito mais longe.',
+        'acredite': 'Acreditar em si mesmo é o primeiro segredo do sucesso.',
+        'persistir': 'O caminho pode ser difícil, mas o destino vale a pena. Foco no Bizu!',
+        'coragem': 'Coragem não é ausência de medo, mas agir apesar dele. Bom serviço!',
+        'disciplina': 'Motivação te faz começar, disciplina te faz continuar.',
+        'habito': 'Crie o hábito de se organizar e a vida ficará muito mais leve.',
+        'gratidao': 'Seja grato pelo trabalho, mas valorize cada segundo da sua folga.',
+        'alegria': 'Encontre alegria nas pequenas vitórias do seu turno.',
+        'vitoria': 'A maior vitória é vencer a si mesmo todos os dias.',
+        // --- FINANÇAS ---
+        'economizar': 'Tente guardar 10% do seu salário todo mês. O Agente aprova esse Bizu!',
+        'investir': 'Aprenda sobre Tesouro Direto ou CDB. É melhor que deixar parado na conta.',
+        'divida': 'Fuja dos juros do cartão de crédito! É a maior armadilha do trabalhador.',
+        'reserva': 'Ter uma reserva de emergência te dá paz de espírito para trabalhar tranquilo.',
+        'gastos': 'Anote seus gastos fixos. Saber para onde vai o dinheiro é o primeiro passo.',
+        // --- TECNOLOGIA ---
+        'ia': 'Eu sou uma Inteligência Artificial básica, mas estou aqui de coração para te ajudar.',
+        'celular': 'Tente diminuir o uso do celular 30 minutos antes de dormir para descansar melhor.',
+        'senha': 'Use senhas fortes! Misture letras, números e símbolos para sua segurança.',
+        'nuvem': 'A vantagem da nuvem é que você acessa sua agenda de qualquer lugar do mundo.',
+        // --- AMIZADE ---
+        'amigo': 'Um amigo de verdade é aquele que te avisa quando tem folga junto com você!',
+        'lealdade': 'Seja leal aos seus valores, tanto no trabalho quanto na vida pessoal.',
+        'confianca': 'Confiança leva anos para construir e segundos para quebrar. Cuide bem das suas.',
+        'ajudar': 'Quem ajuda o colega de turno, colhe cooperação no futuro.',
+        // --- OUTROS ---
+        'chuva': 'Cuidado com a pista molhada se for dirigir para o trabalho hoje!',
+        'sol': 'O sol está forte? Não esqueça o protetor solar, mesmo no serviço externo.',
+        'fome': 'Não trabalhe com fome! O cérebro precisa de glicose para tomar boas decisões.',
+        'sono': 'Se o sono apertar no turno, tente lavar o rosto com água gelada. Ajuda no choque!',
+        'cafe': 'O café é o melhor amigo do Agente Bizu, mas não exagere no final do turno.',
+        'cha': 'Um chazinho de camomila após o serviço ajuda a "baixar a adrenalina" para dormir.',
+        'paz': 'A paz interior começa quando você aceita que não pode controlar tudo.',
+        'tempo': 'O tempo é o seu ativo mais valioso. Use-o com sabedoria entre os turnos.',
+        'orgulho': 'Tenha orgulho da sua farda e do seu trabalho. Você é essencial!',
+        'respeito': 'Respeite para ser respeitado. Educação abre todas as portas no serviço.',
+        'educacao': 'Nunca pare de aprender. O mundo muda rápido demais para ficarmos parados.',
+        'familia': 'Sua família é o seu porto seguro após um dia exaustivo de serviço.',
+        'amor': 'O amor é o que faz todo o esforço valer a pena no final do dia.',
+        'viagem': 'Viajar renova as energias. Onde será sua próxima aventura?',
+        'praia': 'O som das ondas é o melhor remédio para o estresse do trabalho.',
+        'montanha': 'O ar puro da montanha limpa os pulmões e a alma.',
+        'cidade': 'A vida na cidade é corrida, mas sempre há espaço para um momento bizu.',
+        'campo': 'A simplicidade do campo ensina muito sobre o ritmo natural das coisas.',
+        'sorte': 'Sorte é quando a preparação encontra a oportunidade. Esteja pronto!',
+        'azar': 'Não existe azar para quem se organiza e trabalha com dedicação.',
+        'futuro': 'O futuro é um livro em branco. Você escreve uma página a cada plantão.',
+        'passado': 'Aprenda com o passado, mas não more nele. O foco é no amanhã.',
+        'presente': 'O presente é um presente! Aproveite cada segundo do seu dia.',
+        'perdao': 'Perdoar as falhas dos colegas torna o ambiente de trabalho muito melhor.',
+        'festa': 'Comemore suas conquistas, mesmo as pequenas. Você merece!',
+        'trabalho': 'O trabalho dignifica o homem, mas a folga recarrega a bateria!',
+        'descanso': 'Descansar não é perda de tempo, é manutenção de equipamento humano.',
+        'foco': 'Mantenha o foco no seu objetivo principal. Não se distraia com ruídos.',
+        'meta': 'Divida sua meta grande em pequenas tarefas diárias. Fica mais fácil!',
+        'sucesso': 'O sucesso é a soma de pequenos esforços repetidos dia após dia.',
+        'fracasso': 'O fracasso é apenas uma oportunidade de começar de novo de forma inteligente.',
+        'atitude': 'Sua atitude determina sua altitude. Pense positivo!',
+        'pensamento': 'Mude seus pensamentos e você mudará o seu mundo.',
+        'palavra': 'As palavras têm poder. Use-as para construir e não para destruir.',
+        'silencio': 'Às vezes, o silêncio é a melhor resposta. Observe mais.',
+        'ouvir': 'Saber ouvir é uma arte que poucos dominam no ambiente de trabalho.',
+        'falar': 'Fale com clareza e objetividade. Comunicação é tudo na escala.',
+        'escrita': 'Escreva seus objetivos. O que está no papel tem mais chance de acontecer.',
+        'lugar': 'Seu lugar é onde você se sente bem e produtivo.',
+        'casa': 'Sua casa deve ser seu refúgio de paz. Mantenha o trabalho fora dela.',
+        'caminho': 'Se o caminho está difícil, você está subindo. Continue!',
+        'ponte': 'Construa pontes entre as pessoas, não muros de isolamento.',
+        'luz': 'Seja a luz no turno de alguém que está passando por um dia escuro.',
+        'sombra': 'Não tenha medo das sombras. Elas indicam que há luz por perto.',
+        'vento': 'Não podemos mudar o vento, mas podemos ajustar as velas do nosso serviço.',
+        'mar': 'A vida é como o mar, às vezes calma, às vezes agitada. Saiba navegar!',
+        'terra': 'Mantenha os pés no chão, mas os olhos nas estrelas.',
+        'fogo': 'Tenha fogo nos olhos pelo que você faz. Paixão gera excelência.',
+        'ar': 'Respire fundo. O ar puro renova as ideias para o próximo turno.',
+        'vida': 'A vida é uma jornada, não uma competição. Curta o percurso!',
+        'morte': 'A morte nos lembra que o tempo é finito. Aproveite o hoje!',
+        'saudade': 'Saudade é o amor que fica. Guarde as boas lembranças.',
+        'esperanca': 'A esperança é a última que morre, mas a primeira que nos motiva.',
+        'fe': 'Tenha fé em dias melhores. A escala sempre gira para a folga!',
+        'caridade': 'Ajudar quem precisa sem esperar nada em troca é o maior bizu da vida.',
+        'humildade': 'A humildade é a base de todo o crescimento real e duradouro.',
+        'paciencia': 'Paciência é uma virtude, especialmente em plantões demorados.',
+        'resiliencia': 'Seja como o bambu, vergue mas não quebre diante das dificuldades.',
+        'empatia': 'Coloque-se no lugar do seu colega de trabalho. Isso muda tudo.',
+        'generosidade': 'Seja generoso com seu conhecimento. Compartilhar é crescer.',
+        'integridade': 'Faça o certo, mesmo quando ninguém estiver olhando.',
+        'honestidade': 'A honestidade é a política mais inteligente no longo prazo.',
+        'justica': 'Seja justo em suas críticas e generoso em seus elogios.',
+        'liberdade': 'A liberdade começa na mente organizada e livre de preocupações inúteis.',
+        'conhecimento': 'O conhecimento é o único tesouro que ninguém pode tirar de você.',
+        'sabedoria': 'A sabedoria vem da experiência e da reflexão constante sobre a vida.',
+        'inteligencia': 'Inteligência é saber o que dizer. Sabedoria é saber se deve dizer.',
+        'curiosidade': 'Mantenha sua curiosidade viva. O mundo é cheio de bizus incríveis!',
+        'criatividade': 'A criatividade ajuda a resolver problemas complexos com soluções simples.',
+        'inovacao': 'Inovar é fazer as coisas de um jeito novo e melhor. Evolua!',
+        'mudanca': 'A única constante na vida é a mudança. Adapte-se e vença!',
+        'corpo': 'Cuide do seu corpo como se fosse seu bem mais precioso. E ele é!',
+        'mente': 'Uma mente sã em um corpo são. Esse é o equilíbrio perfeito.',
+        'espirito': 'Alimente seu espírito com coisas boas: arte, música, fé e amor.',
+        'uniao': 'A união faz a força, especialmente em equipes que trabalham por escala.',
+        'equipe': 'Um time unido vence qualquer desafio, por mais puxado que seja.',
+        'parceria': 'Parcerias sólidas facilitam o dia a dia e geram resultados incríveis.',
+        'colaboracao': 'Colaborar é somar talentos para chegar a um objetivo comum.',
+        'comunicacao': 'Uma falha na comunicação pode arruinar um turno inteiro. Seja claro!',
+        'organizacao': 'AgBizu: Sua vida organizada, um dia de cada vez.',
+        'metodologia': 'Ter um método de trabalho economiza tempo e evita retrabalho.',
+        'processo': 'Confie no processo. O resultado vem com a consistência.',
+        'resultado': 'O resultado é colheita. A organização é a plantação.',
+        'foco': 'Foco é dizer não para as distrações e sim para o que importa.',
+        'prioridade': 'Se tudo é prioridade, nada é. Escolha o que fazer primeiro.',
+        'planejamento': 'Um minuto de planejamento economiza dez minutos de execução.',
+        'estrategia': 'Tenha uma estratégia clara para sua carreira e para sua vida pessoal.',
+        'execucao': 'Planejar é bom, mas executar é o que traz o resultado real.',
+        'conclusao': 'Termine o que você começou. Concluir tarefas gera dopamina e prazer.',
+        'revisao': 'Revise seus planos regularmente. Ajustes são sempre necessários.',
+        'erro': 'Errar faz parte, mas aprenda rápido para não repetir o mesmo erro.',
+        'acerto': 'Comemore seus acertos e aprenda com eles também.',
+        'desafio': 'Desafios são degraus para o seu crescimento. Suba com coragem!',
+        'oportunidade': 'As oportunidades costumam estar disfarçadas de trabalho duro.',
+        'risco': 'Quem não corre riscos, não alcança novos patamares. Ouse com cautela.',
+        'seguranca': 'Segurança em primeiro lugar, sempre. Nada vale a sua integridade.',
+        'preparacao': 'A sorte favorece a mente preparada. Prepare-se todos os dias.',
+        'vitoria': 'A vitória é de quem não desiste diante dos obstáculos.',
+        'tchau': 'Até logo! Estarei aqui quando você precisar de um bizu! 👋',
+        'adeus': 'Não diga adeus, diga "até a próxima folga"! Estarei por aqui.'
+      };
+
+      // Match longest key first to avoid false partial matches
+      const sortedKeys = Object.keys(K).sort((a, b) => b.length - a.length);
+      for (const key of sortedKeys) {
+        if (q.includes(key)) return K[key];
+      }
+
+      if (isHelp) {
+        if (q.includes('evento') || q.includes('adicionar') || q.includes('event') || q.includes('add'))
+          return isEN ? "To add an event, tap '+' at the top or tap any day in the calendar. Easy! ✅" : "Para adicionar, clique no '+' no topo ou toque direto em um dia do calendário. Fácil! ✅";
+        if (q.includes('escala') || q.includes('turno') || q.includes('schedule') || q.includes('shift'))
+          return isEN ? "To change your schedule, tap the purple button at the top of the agenda. Choose your shift and reference date. 📅" : "Para mudar sua escala, clique no botão roxo no topo da agenda. Lá você escolhe seu turno e o dia de referência. 📅";
+        if (q.includes('cor') || q.includes('tema') || q.includes('color') || q.includes('theme'))
+          return isEN ? "The premium purple theme is the current look. More color options coming soon! 💅" : "Por enquanto o tema é roxo premium, mas no futuro teremos mais cores! 💅";
+        if (q.includes('notificacao') || q.includes('notification'))
+          return isEN ? "Notifications arrive via the browser or PWA app if installed! ⚡" : "As notificações chegam pelo navegador ou pelo app se você instalou a PWA! ⚡";
+        return isEN
+          ? "I can help with: adding events, changing your schedule, and checking days off. What would you like to do?"
+          : "Posso te ajudar com: adicionar eventos, mudar escala e consultar folgas. O que quer fazer especificamente?";
+      }
+
+      return isEN
+        ? "I don't have a tip on that yet, but I'm learning! Want to schedule something or check your shift?"
+        : "Ainda não tenho um bizu sobre isso, mas estou aprendendo! Quer agendar algo ou ver sua escala?";
+    }
+
+
+    function rand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+    function checkOff(date) {
+      const scale = S.userScale;
+      if (!scale || !scale.sequence) return null;
+      const refDate = new Date(scale.referenceDate);
+      const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      const start = new Date(refDate.getFullYear(), refDate.getMonth(), refDate.getDate());
+      const delta = Math.round((target - start) / 86400000);
+      const idx = ((delta % scale.sequence.length) + scale.sequence.length) % scale.sequence.length;
+      return scale.sequence[idx] === 0;
+    }
+
+    sendBtn.onclick = handleSend;
+    uiInput.onkeydown = (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSend();
+      }
+    };
+
+    // i18n support for agent
+    function applyAgentI18n() {
+      if (typeof i18n === 'undefined') return;
+      i18n.applyToDOM();
+      // Update lang button
+      const btn = document.getElementById('agent-lang-btn');
+      if (btn) {
+        btn.textContent = i18n.lang() === 'pt' ? 'EN' : 'PT';
+        btn.title = i18n.lang() === 'pt' ? 'Switch to English' : 'Mudar para Português';
+      }
+      // Render suggestion chips
+      const chipsEl = document.getElementById('suggestion-chips');
+      if (chipsEl) {
+        const chipKeys = ['chip_holiday', 'chip_when_off', 'chip_today', 'chip_add', 'chip_scale', 'chip_joke', 'chip_movie', 'chip_bible', 'chip_motivation', 'chip_search'];
+        chipsEl.innerHTML = chipKeys.map(k => {
+          const text = i18n.t(k);
+          return `<div class="chip" onclick="ask('${text}')">${text}</div>`;
+        }).join('');
+      }
+    }
+
+
+    window.toggleAgentLang = function () {
+      if (typeof i18n !== 'undefined') {
+        i18n.toggle();
+        applyAgentI18n();
+      }
+    };
+
+    // Initial i18n apply
+    applyAgentI18n();
+
+    window.scrollChips = (amount) => {
+      const el = document.getElementById('suggestion-chips');
+      if (el) el.scrollBy({ left: amount, behavior: 'smooth' });
+    };
+
+    setTimeout(() => {
+      const greeting = typeof i18n !== 'undefined' ? i18n.t('agent_greeting') : "Olá! Estou pronto. Diga algo como 'Folga amanhã?' ou peça ajuda.";
+      addMsg(greeting, 'bot');
+    }, 400);
+
+  </script>
+</body>
+
+</html>

@@ -1,0 +1,2034 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, interactive-widget=resizes-content" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="theme-color" content="#ffffff" />
+  <title>Agenda</title>
+  <link rel="icon" href="favicon.ico" type="image/x-icon" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Roboto:wght@400;500;700&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <!-- Google Material Symbols -->
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
+
+  <style>
+    /* Language Toggle Button */
+    .lang-toggle-btn {
+      background: var(--surface2, #f3f4f6);
+      border: 1px solid var(--border, #e5e7eb);
+      border-radius: 8px;
+      color: var(--text, #1f2937);
+      cursor: pointer;
+      font-family: var(--font);
+      font-size: 0.72rem;
+      height: 32px;
+      letter-spacing: 0.06em;
+      min-width: 36px;
+      padding: 0 8px;
+      transition: background 0.2s, color 0.2s, transform 0.15s;
+      display: none !important;
+    }
+
+    .lang-toggle-btn:active {
+      transform: scale(0.95);
+    }
+
+    /* ===== LANGUAGE PICKER MODAL ===== */
+    #lang-picker-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 99999;
+      background: rgba(17, 12, 34, 0.72);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      animation: lpFadeIn 0.35s ease both;
+    }
+
+    #lang-picker-overlay.hide {
+      animation: lpFadeOut 0.3s ease forwards;
+    }
+
+    @keyframes lpFadeIn {
+      from {
+        opacity: 0;
+      }
+
+      to {
+        opacity: 1;
+      }
+    }
+
+    @keyframes lpFadeOut {
+      from {
+        opacity: 1;
+      }
+
+      to {
+        opacity: 0;
+      }
+    }
+
+    .lp-card {
+      background: #ffffff;
+      border-radius: 28px;
+      padding: 36px 28px 32px;
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+      box-shadow: 0 32px 80px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.08);
+      animation: lpSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+    }
+
+    @keyframes lpSlideUp {
+      from {
+        opacity: 0;
+        transform: translateY(32px) scale(0.96);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .lp-logo {
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
+      margin: 0 auto 16px;
+      display: block;
+      filter: drop-shadow(0 4px 12px rgba(124, 58, 237, 0.18));
+    }
+
+    .lp-title {
+      font-family: var(--font);
+      font-size: 1.35rem;
+
+      color: #111827;
+      margin: 0 0 4px;
+      letter-spacing: -0.02em;
+    }
+
+    .lp-subtitle {
+      font-family: var(--font);
+      font-size: 0.85rem;
+      color: #6b7280;
+      margin: 0 0 28px;
+
+    }
+
+    .lp-flags {
+      display: flex;
+      gap: 16px;
+      justify-content: center;
+    }
+
+    .lp-flag-btn {
+      flex: 1;
+      max-width: 140px;
+      background: #f9fafb;
+      border: 2.5px solid #e5e7eb;
+      border-radius: 20px;
+      padding: 20px 12px 16px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      transition:
+        border-color 0.2s,
+        background 0.2s,
+        transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1),
+        box-shadow 0.2s;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .lp-flag-btn:hover {
+      border-color: #7c3aed;
+      background: #faf5ff;
+      transform: translateY(-4px) scale(1.03);
+      box-shadow: 0 12px 28px rgba(124, 58, 237, 0.15);
+    }
+
+    .lp-flag-btn:active {
+      transform: translateY(0) scale(0.97);
+    }
+
+    .lp-flag-btn.selected {
+      border-color: #7c3aed;
+      background: #f5f0ff;
+      box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.12);
+    }
+
+    .lp-flag-img {
+      width: 72px;
+      height: 48px;
+      object-fit: cover;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+      display: block;
+    }
+
+    .lp-flag-label {
+      font-family: var(--font);
+      font-size: 0.88rem;
+      color: #374151;
+      line-height: 1.2;
+    }
+
+    .lp-flag-label small {
+      display: block;
+      font-size: 0.72rem;
+
+      color: #9ca3af;
+      margin-top: 2px;
+    }
+
+    .lp-confirm-btn {
+      margin-top: 24px;
+      width: 100%;
+      height: 52px;
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
+      border: none;
+      border-radius: 16px;
+      color: #fff;
+      font-family: var(--font);
+      font-size: 1rem;
+      cursor: pointer;
+      letter-spacing: -0.01em;
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+      box-shadow: 0 8px 24px rgba(124, 58, 237, 0.35);
+    }
+
+    .lp-confirm-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 32px rgba(124, 58, 237, 0.4);
+    }
+
+    .lp-confirm-btn:active {
+      transform: translateY(0) scale(0.98);
+    }
+
+    .lp-confirm-btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    /* ===== MULTI-ACTION FAB (SPEED DIAL) ===== */
+    .fab-wrapper {
+      position: fixed;
+      bottom: 24px;
+      right: 20px;
+      z-index: 9990;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 16px;
+      transition: opacity 0.3s ease;
+      pointer-events: none;
+    }
+
+    .fab-wrapper.hide {
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(20px);
+    }
+
+    .fab-main-btn {
+      pointer-events: auto;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
+      color: white;
+      border: none;
+      box-shadow: 0 8px 24px rgba(124, 58, 237, 0.45);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s;
+      z-index: 2;
+      display: none !important;
+    }
+
+    .fab-main-btn:active {
+      transform: scale(0.92);
+    }
+
+    .fab-wrapper.open .fab-main-btn {
+      transform: rotate(45deg) scale(1.1);
+      background: var(--surface);
+      color: var(--primary);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+    }
+
+    .fab-main-btn .material-symbols-outlined {
+      font-size: 32px;
+      font-variation-settings: 'wght' 600;
+    }
+
+    .fab-menu {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 12px;
+      visibility: hidden;
+      opacity: 0;
+      transform: translateY(20px) scale(0.8);
+      transform-origin: bottom right;
+      transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .fab-wrapper.open .fab-menu {
+      visibility: visible;
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+
+    .fab-action {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      transition: transform 0.2s;
+      pointer-events: auto;
+    }
+
+    .fab-action:active {
+      transform: scale(0.95);
+    }
+
+    .fab-label {
+      background: var(--surface);
+      color: var(--text);
+      padding: 6px 14px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    .fab-sub-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+    }
+
+    .fab-sub-btn .material-symbols-outlined {
+      font-size: 24px;
+    }
+
+    /* Staggered animation for menu items */
+    .fab-wrapper.open .fab-action:nth-child(3) {
+      transition-delay: 0.05s;
+    }
+
+    .fab-wrapper.open .fab-action:nth-child(2) {
+      transition-delay: 0.1s;
+    }
+
+    .fab-wrapper.open .fab-action:nth-child(1) {
+      transition-delay: 0.15s;
+    }
+  </style>
+  <link rel="stylesheet" href="https://www.cursopreparatoriocfsdpmmg.viewgo.com.br/style.css">
+</head>
+
+<body>
+
+  <!-- ===== LANGUAGE PICKER MODAL ===== -->
+  <div id="lang-picker-overlay">
+    <div class="lp-card">
+      <div id="lp-header" class="modal-header hidden"
+        style="margin-bottom: 20px; padding: 0 0 16px; border-bottom: 1px solid var(--border);">
+        <div class="modal-title" data-i18n="btn_lang">Idioma</div>
+        <button type="button" class="btn btn-ghost btn-icon-sm" onclick="lpClose()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <img src="fundoinvisivel.png" alt="ViewGo" class="lp-logo">
+      <div class="lp-title">Agenda Business</div>
+      <p class="lp-subtitle">Escolha seu idioma &nbsp;/&nbsp; Choose your language</p>
+
+      <div class="lp-flags">
+        <!-- Português -->
+        <button class="lp-flag-btn" id="lp-btn-pt" onclick="lpSelect('pt')">
+          <img src="brasil.webp" alt="Bandeira do Brasil" class="lp-flag-img">
+          <div class="lp-flag-label">
+            Português
+            <small>Brasil</small>
+          </div>
+        </button>
+
+        <!-- English -->
+        <button class="lp-flag-btn" id="lp-btn-en" onclick="lpSelect('en')">
+          <img src="usa.webp" alt="USA Flag" class="lp-flag-img">
+          <div class="lp-flag-label">
+            English
+            <small>United States</small>
+          </div>
+        </button>
+      </div>
+
+      <button class="lp-confirm-btn" id="lp-confirm" onclick="lpConfirm()" disabled>
+        Continuar &nbsp;/&nbsp; Continue
+      </button>
+    </div>
+  </div>
+
+  <!-- ===== LOGIN SCREEN ===== -->
+  <div id="login-screen" class="screen">
+    <div class="login-wrap">
+      <!-- Top Branding -->
+      <div class="login-hero">
+        <div class="login-logo">
+          <img src="fundoinvisivel.png" class="loginImg" alt="Logo">
+        </div>
+        <div class="login-title">Agenda Business</div>
+        <p class="login-sub" id="login-description" data-i18n="login_title">Sua agenda de trabalho inteligente</p>
+      </div>
+
+      <!-- Bottom Form Container -->
+      <div class="login-footer">
+
+        <form id="login-form" class="login-form" autocomplete="off">
+
+          <div id="auth-section-title"
+            style="text-align: center; margin-bottom: 24px;  font-size: 1.5rem; color: var(--text);"
+            data-i18n="login_header_access">Acesso à Conta</div>
+
+          <!-- Step Indicator -->
+          <div id="auth-steps-indicator" class="step-indicator hidden">
+            <div class="step-dot active"></div>
+            <div class="step-dot"></div>
+            <div class="step-dot"></div>
+            <div class="step-dot"></div>
+          </div>
+
+          <div class="auth-step-container">
+            <div id="auth-step-wrapper" class="auth-step-wrapper">
+
+              <!-- Step 1: Name (Register) / Email (Login) -->
+              <div class="auth-step" id="step-1">
+                <div id="group-name" class="field-group hidden">
+                  <label class="field-label" data-i18n="login_name_label">Nome Completo</label>
+                  <input id="inp-name" class="field-input" type="text" data-i18n="login_name_placeholder"
+                    data-i18n-attr="placeholder" placeholder="Seu nome" />
+                </div>
+                <div id="group-email-step1" class="field-group">
+                  <label class="field-label" data-i18n="login_email_label">E-mail</label>
+                  <input id="inp-email" class="field-input" type="email" data-i18n="login_email_placeholder"
+                    data-i18n-attr="placeholder" placeholder="seu@email.com" />
+                </div>
+              </div>
+
+              <!-- Step 2: Email (Register) / Password (Login) -->
+              <div class="auth-step" id="step-2">
+                <div id="group-email-register" class="field-group hidden">
+                  <!-- This will be shown only in register mode if we want separate fields, 
+                        but we can reuse inp-email and just move it. 
+                        Actually let's keep it simple: 
+                        Login: 1. Email, 2. Password.
+                        Register: 1. Name, 2. Email, 3. Password+Confirm.
+                    -->
+                </div>
+              </div>
+
+              <!-- Step 3: Password -->
+              <div class="auth-step hidden" id="step-3">
+                <div id="group-password" class="field-group">
+                  <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                    <label class="field-label" data-i18n="login_pass_label">Senha</label>
+                  </div>
+                  <input id="inp-pass" class="field-input" type="password" data-i18n="login_pass_placeholder"
+                    data-i18n-attr="placeholder" placeholder="Sua senha" />
+                </div>
+              </div>
+
+              <!-- Step 4: Confirm (Register Only) -->
+              <div class="auth-step hidden" id="step-4">
+                <div id="group-confirm" class="field-group">
+                  <label class="field-label" data-i18n="login_confirm_label">Confirmar Senha</label>
+                  <input id="inp-confirm" class="field-input" type="password" data-i18n="login_confirm_placeholder"
+                    data-i18n-attr="placeholder" placeholder="Repita a senha" />
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <p id="login-error" class="form-error"></p>
+
+          <div class="auth-nav">
+            <button type="button" id="btn-auth-back" class="btn btn-outline flex-1 hidden" onclick="prevAuthStep()">
+              <span class="material-symbols-outlined" style="font-size: 20px;">arrow_back</span>
+            </button>
+            <button type="button" id="btn-auth-next" class="btn btn-primary flex-1"
+              style="height: 40px; font-size: 0.85rem; border-radius: 12px; justify-content: center;"
+              onclick="nextAuthStep()">
+              <span data-i18n="btn_continue">Continuar</span>
+              <span class="material-symbols-outlined" style="font-size: 16px;">arrow_forward</span>
+            </button>
+            <button type="submit" class="btn btn-primary flex-1 hidden" id="btn-login-submit"
+              style="height: 40px; font-size: 0.85rem; border-radius: 12px; justify-content: center;">
+              <span id="txt-login-btn" data-i18n="login_btn">Entrar na Plataforma</span>
+            </button>
+          </div>
+
+          <!-- Forgot password link (login mode only) -->
+          <div id="forgot-pass-wrap" class="forgot-pass-wrap">
+            <div class="forgot-separator">
+              <span></span>
+              <span class="forgot-separator-text" data-i18n="login_or">ou</span>
+              <span></span>
+            </div>
+            <button type="button" id="btn-forgot-pass" class="forgot-pass-btn" onclick="toggleRecovery(true)">
+              <span class="material-symbols-outlined" style="font-size:15px;">lock_open</span>
+              <span data-i18n="login_forgot">Esqueci minha senha</span>
+            </button>
+          </div>
+
+          <div style="text-align: center; margin-top: 6px;">
+            <button type="button" id="btn-toggle-mode" class="btn btn-ghost"
+              style="font-size: 0.75rem;  color: #6b7280;" onclick="toggleAuthMode()">
+              <span id="txt-toggle" data-i18n="login_no_account">Não tem uma conta? <span
+                  style="color: var(--primary);">Cadastre-se grátis.</span></span>
+            </button>
+          </div>
+        </form>
+
+        <!-- Recovery View (hidden initially) -->
+        <div id="recovery-area" class="hidden">
+
+          <!-- === STATE 1: Form === -->
+          <div id="recovery-form-state">
+            <!-- Icon -->
+            <div class="recovery-icon-wrap">
+              <div class="recovery-icon-ring">
+                <span class="material-symbols-outlined recovery-icon-symbol">lock_reset</span>
+              </div>
+            </div>
+
+            <div class="recovery-header">
+              <div class="recovery-title" data-i18n="recovery_title">Recuperar Senha</div>
+              <p class="recovery-subtitle" data-i18n="recovery_desc">Digite seu e-mail para receber o link de
+                recuperação.</p>
+            </div>
+
+            <div class="field-group" style="margin-bottom: 8px;">
+              <label class="field-label" data-i18n="login_email_label">E-mail</label>
+              <div class="recovery-input-wrap">
+                <span class="material-symbols-outlined recovery-input-icon">alternate_email</span>
+                <input id="inp-recovery-email" class="field-input recovery-field-input" type="email" inputmode="email"
+                  autocomplete="email" data-i18n="login_email_placeholder" data-i18n-attr="placeholder"
+                  placeholder="seu@email.com" />
+              </div>
+            </div>
+
+            <p id="recovery-error" class="form-error"></p>
+
+            <button type="button" id="btn-send-recovery" class="btn btn-primary btn-full recovery-send-btn"
+              onclick="sendRecoveryEmail()">
+              <span class="material-symbols-outlined" style="font-size:18px;">send</span>
+              <span data-i18n="recovery_btn">Enviar E-mail</span>
+            </button>
+
+            <!-- Security tips -->
+            <div class="recovery-tips">
+              <div class="recovery-tip">
+                <span class="material-symbols-outlined">schedule</span>
+                <span data-i18n="recovery_tip_time">O link expira em 1 hora</span>
+              </div>
+              <div class="recovery-tip">
+                <span class="material-symbols-outlined">inbox</span>
+                <span data-i18n="recovery_tip_spam">Verifique também a pasta de spam</span>
+              </div>
+            </div>
+
+            <button type="button" class="recovery-back-btn" onclick="toggleRecovery(false)">
+              <span class="material-symbols-outlined" style="font-size:16px;">arrow_back</span>
+              <span data-i18n="recovery_back">Voltar ao login</span>
+            </button>
+          </div>
+
+          <!-- === STATE 2: Success === -->
+          <div id="recovery-success-state" class="hidden">
+            <div class="recovery-success-anim">
+              <div class="recovery-success-circle">
+                <span class="material-symbols-outlined recovery-success-icon">mark_email_read</span>
+              </div>
+              <div class="recovery-success-ripple"></div>
+            </div>
+
+            <div class="recovery-title" style="margin-top: 20px;" data-i18n="recovery_success_title">E-mail enviado!
+            </div>
+            <p class="recovery-subtitle" id="recovery-sent-to"></p>
+            <p class="recovery-subtitle" style="margin-top:6px;" data-i18n="recovery_success_desc">
+              Clique no link dentro do e-mail para redefinir sua senha.
+            </p>
+
+            <div class="recovery-info-box">
+              <div class="recovery-tip">
+                <span class="material-symbols-outlined">schedule</span>
+                <span data-i18n="recovery_tip_time">O link expira em 1 hora</span>
+              </div>
+              <div class="recovery-tip">
+                <span class="material-symbols-outlined">inbox</span>
+                <span data-i18n="recovery_tip_spam">Verifique também a pasta de spam</span>
+              </div>
+            </div>
+
+            <!-- Resend countdown -->
+            <div id="recovery-resend-wrap" class="recovery-resend-wrap hidden">
+              <span class="recovery-resend-text" data-i18n="recovery_resend_label">Não recebeu?</span>
+              <button type="button" id="btn-resend-recovery" class="recovery-resend-btn"
+                onclick="resendRecoveryEmail()">
+                <span data-i18n="recovery_resend_btn">Reenviar</span>
+              </button>
+            </div>
+            <div id="recovery-countdown-wrap" class="recovery-countdown-wrap">
+              <span class="material-symbols-outlined" style="font-size:14px;color:var(--text3);">timer</span>
+              <span data-i18n="recovery_wait_label">Reenviar em</span>
+              <span id="recovery-countdown" class="recovery-countdown-num">60</span>s
+            </div>
+
+            <button type="button" class="btn btn-primary btn-full recovery-send-btn" style="margin-top:20px;"
+              onclick="toggleRecovery(false)">
+              <span class="material-symbols-outlined" style="font-size:18px;">login</span>
+              <span data-i18n="recovery_go_login">Voltar ao login</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- Language toggle on login -->
+        <div id="login-lang-toggle" style="text-align:center; margin-top:16px;">
+          <button class="lang-toggle-btn" onclick="i18n.toggle()" title="Switch language">EN</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MAIN APP ===== -->
+  <div id="app-screen" class="screen">
+
+    <!-- SIDE MENU OVERLAY -->
+    <div id="side-menu-overlay" class="side-menu-overlay hidden"></div>
+
+    <!-- SIDE MENU -->
+    <div id="side-menu" class="side-menu">
+      <div class="side-menu-header">
+        <div class="logo-area" style="display: flex; align-items: center; overflow: hidden; cursor: pointer;"
+          onclick="window.toggleSidebar()">
+          <img id="logoMarca" src="fundoinvisivel.png" alt="Logo">
+          <div class="menu-brand-name" style="margin-left: 15px; white-space: nowrap;">Agenda Business</div>
+        </div>
+        <button id="btn-close-menu" class="btn btn-ghost btn-icon mobile-only">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="side-menu-content">
+        <div class="header-actions">
+          <button id="btn-go-home" class="btn btn-primary btn-full" style="margin-bottom: 10px;">
+            <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 6px;">home</span>
+            <span data-i18n="btn_go_home">Início (Hoje)</span>
+          </button>
+
+          <button id="btn-new-event" class="btn btn-outline btn-full" data-i18n-attr="title" data-i18n="btn_new_title"
+            title="Novo Evento">
+            <svg xmlns="http://www.w3.org/2000/svg" height="30px" viewBox="0 -960 960 960" width="30px" fill="#000000">
+              <path
+                d="M680-80v-120H560v-80h120v-120h80v120h120v80H760v120h-80Zm-480-80q-33 0-56.5-23.5T120-240v-480q0-33 23.5-56.5T200-800h40v-80h80v80h240v-80h80v80h40q33 0 56.5 23.5T760-720v244q-20-3-40-3t-40 3v-84H200v320h280q0 20 3 40t11 40H200Zm0-480h480v-80H200v80Zm0 0v-80 80Z" />
+            </svg>
+            <span data-i18n="btn_new">Novo Evento</span>
+          </button>
+
+          <button id="btn-new-transaction-side" class="btn btn-outline btn-full" style="margin-bottom: 10px;">
+            <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#000000">
+              <path
+                d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v240H160v240h400v80H160Zm0-480h640v-80H160v80ZM760-80v-120H640v-80h120v-120h80v120h120v80H840v120h-80ZM160-240v-480 480Z" />
+            </svg>
+            <span data-i18n="btn_new_transaction">Adicionar uma nova transação</span>
+          </button>
+
+          <button id="btn-add-professional" class="btn btn-outline btn-full" style="margin-bottom: 10px;">
+            <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 6px;">badge</span>
+            <span>Profissionais</span>
+          </button>
+
+          <button id="btn-add-product" class="btn btn-outline btn-full" style="margin-bottom: 10px;">
+            <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 6px;">inventory_2</span>
+            <span>Produtos/Serv.</span>
+          </button>
+
+          <button id="btn-add-client" class="btn btn-outline btn-full" style="margin-bottom: 10px;">
+            <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 6px;">group_add</span>
+            <span>Clientes</span>
+          </button>
+
+          <button id="btn-add-supplier" class="btn btn-outline btn-full" style="margin-bottom: 10px;">
+            <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 6px;">local_shipping</span>
+            <span>Fornecedores</span>
+          </button>
+
+
+
+          <button id="btn-agent-side" class="btn btn-outline btn-full" style="margin-bottom: 10px;">
+            <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 6px;">smart_toy</span>
+            <span data-i18n="agent_fab">Agente AI</span>
+          </button>
+
+
+          <button id="btn-lang-picker" class="btn btn-outline btn-full" style="margin-bottom: 10px;">
+            <span class="material-symbols-outlined" style="margin-right:8px;">language</span>
+            <span data-i18n="btn_lang">Idioma</span>
+          </button>
+          <button id="btn-search" class="btn btn-outline btn-full" data-i18n-attr="title" data-i18n="btn_search_title"
+            title="Pesquisar">
+            <span class="material-symbols-outlined" style="margin-right:8px;">search</span>
+            <span data-i18n="btn_search_title">Pesquisar</span>
+          </button>
+          <button id="btn-toggle-sound" class="btn btn-outline btn-full">
+            <span id="icon-sound-on" class="material-symbols-outlined" style="margin-right:8px;">volume_up</span>
+            <span id="icon-sound-off" class="material-symbols-outlined hidden"
+              style="margin-right:8px;">volume_off</span>
+            <span data-i18n="btn_sound_title">Sons</span>
+          </button>
+          <button id="btn-open-scale" class="btn btn-outline btn-full">
+            <span class="material-symbols-outlined" style="margin-right:8px;">calendar_month</span>
+            <span data-i18n="btn_scale">Minha Escala</span>
+          </button>
+          <button style="margin-bottom: 10px; margin-top: 10px;" id="btn-open-finances"
+            class="btn btn-outline btn-full">
+            <span class="material-symbols-outlined" style="margin-right:8px;">payments</span>
+            <span data-i18n="finance_title">Finanças</span>
+          </button>
+          <button id="btn-toggle-global-finance" class="btn btn-outline btn-full" style="margin-bottom: 10px;">
+            <div id="icon-finance-visible" style="margin-right:8px; display: flex; align-items:center;">
+              <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px"
+                fill="currentColor">
+                <path
+                  d="M320-414v-306h120v306l-60-56-60 56Zm200 60v-526h120v406L520-354ZM120-216v-344h120v224L120-216Zm0 98 258-258 142 122 224-224h-64v-80h200v200h-80v-64L524-146 382-268 232-118H120Z" />
+              </svg>
+            </div>
+            <div id="icon-finance-hidden" class="hidden"
+              style="margin-right:8px; display: flex; align-items:center; opacity: 0.5;">
+              <svg xmlns="http://www.w3.org/2000/svg" height="20px" viewBox="0 -960 960 960" width="20px"
+                fill="currentColor">
+                <path
+                  d="M320-414v-306h120v306l-60-56-60 56Zm200 60v-526h120v406L520-354ZM120-216v-344h120v224L120-216Zm0 98 258-258 142 122 224-224h-64v-80h200v200h-80v-64L524-146 382-268 232-118H120Z" />
+              </svg>
+            </div>
+            <span data-i18n="btn_toggle_finance">Resumo Financeiro</span>
+          </button>
+
+          <div style="flex: 1;"></div>
+          <button id="btn-admin-panel" class="btn btn-outline btn-full hidden"
+            style="margin-bottom: 10px; border-color: #7c3aed; color: #7c3aed;">
+            <span class="material-symbols-outlined" style="margin-right:8px;">admin_panel_settings</span>
+            <span>Painel Admin</span>
+          </button>
+
+          <button id="btn-logout" class="btn btn-outline btn-full" data-i18n-attr="title" data-i18n="btn_logout_title"
+            title="Sair" style="justify-content: center;">
+            <span class="material-symbols-outlined" style="margin-right:8px;">logout</span>
+            <span data-i18n="btn_logout_title">Sair</span>
+          </button>
+          <div style="flex: 1; height: 1px; background-color: var(--border); margin-top: 10px; margin-bottom: 20px;">
+          </div>
+          <div class="agent-intro-card hidden" onclick="goToAgent()"
+            style="cursor: pointer; background: var(--bg); padding: 20px; border-radius: 20px; border: 1px solid var(--border); display: flex; align-items: flex-start; gap: 16px; transition: transform 0.2s; margin-bottom: 24px;">
+            <div
+              style="background: var(--primary); padding: 12px; border-radius: 14px; display: flex; align-items: center; justify-content: center;">
+              <span class="material-symbols-outlined" style="color: #fff; font-size: 32px;">smart_toy</span>
+            </div>
+            <div>
+              <div data-i18n="agent_intro_title" style="margin: 0; font-size: 0.9rem;  color: var(--text);"></div>
+              <p data-i18n="agent_intro_desc"
+                style="margin: 4px 0 0; font-size: 0.75rem; color: var(--text2); line-height: 1.4;"></p>
+            </div>
+          </div>
+
+          <!-- TUTORIAL SECTION -->
+          <div class="hidden"
+            style="background: var(--surface); padding: 20px; border-radius: 20px; border: 1px solid var(--border);">
+            <div data-i18n="tutorial_title"
+              style="margin: 0 0 16px; font-size: 1rem;  color: var(--text2); text-transform: uppercase; letter-spacing: 0.5px;">
+            </div>
+
+            <!-- Dots Legend -->
+            <div style="display: flex; gap: 20px; margin-bottom: 20px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div
+                  style="width: 12px; height: 12px; border-radius: 50%; background: #dc2626; box-shadow: 0 0 4px rgba(220, 38, 38, 0.4);">
+                </div>
+                <span data-i18n="tutorial_work_dot" style="font-size: 0.95rem; color: var(--text2);"></span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div
+                  style="width: 12px; height: 12px; border-radius: 50%; background: #16a34a; box-shadow: 0 0 4px rgba(22, 163, 74, 0.4);">
+                </div>
+                <span data-i18n="tutorial_off_dot" style="font-size: 0.95rem; color: var(--text2);"></span>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <span class="material-symbols-outlined" style="font-size: 24px; color: var(--primary);">drag_pan</span>
+                <p data-i18n="tutorial_swipe"
+                  style="margin: 0; font-size: 0.9rem; color: var(--text3); line-height: 1.3;"></p>
+              </div>
+              <div style="display: flex; align-items: center; gap: 14px;">
+                <span class="material-symbols-outlined" style="font-size: 24px; color: var(--primary);">touch_app</span>
+                <p data-i18n="tutorial_event"
+                  style="margin: 0; font-size: 0.9rem; color: var(--text3); line-height: 1.3;"></p>
+              </div>
+            </div>
+          </div>
+
+          <p
+            style="text-align: center; font-size: 0.7rem; color: var(--text3); margin-top: 20px; margin-bottom: 100px;">
+            Agenda Business v1.0
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN WRAPPER FOR APP WEB -->
+    <div class="main-wrapper"
+      style="flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; position: relative; height: 100%;">
+      <!-- HEADER -->
+      <header class="app-header">
+
+        <!-- SCALE BAR (Now with Menu Toggle on the Left) -->
+        <div id="scale-bar" class="scale-bar hidden">
+          <!-- Botão de colapsar no Desktop (Estilizado via CSS) -->
+          <button id="btn-collapse-sidebar" class="btn btn-icon desktop-only" title="Recolher Menu">
+            <span class="material-symbols-outlined">menu_open</span>
+          </button>
+
+          <button id="btn-open-menu" class="btn btn-ghost btn-icon mobile-only" style="margin-right: 4px;">
+            <span class="material-symbols-outlined">menu</span>
+          </button>
+
+
+
+          <div class="scale-left">
+            <button id="btn-scale-settings" class="btn btn-ghost-violet btn-sm">
+              <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 4px;">calendar_month</span>
+              <span id="scale-display">--</span>
+            </button>
+          </div>
+
+          <div class="header-center" style="display: flex; align-items: center; gap: 8px;">
+            <div class="view-switcher">
+              <button id="btn-view-week" class="view-btn">
+                <span class="material-symbols-outlined" style="font-size: 18px;">calendar_view_week</span>
+                <span data-i18n="btn_week">Semana</span>
+              </button>
+              <button id="btn-view-month" class="view-btn active">
+                <span class="material-symbols-outlined" style="font-size: 18px;">calendar_view_month</span>
+                <span data-i18n="btn_month">Mês</span>
+              </button>
+              <button id="btn-view-year" class="view-btn">
+                <span class="material-symbols-outlined" style="font-size: 18px;">grid_view</span>
+                <span data-i18n="btn_year">Ano</span>
+              </button>
+              <button id="btn-view-ai" class="view-btn">
+                <span class="material-symbols-outlined" style="font-size: 18px;">smart_toy</span>
+                <span data-i18n="btn_ai">IA</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="header-right" style="display: flex; align-items: center; gap: 8px;">
+            <select id="header-prof-filter" class="btn btn-ghost"
+              style="border: 1px solid var(--border); border-radius: 12px; font-size: 0.8rem; max-width: 120px;">
+              <option value="">Filtrar Prof.</option>
+            </select>
+            <button id="btn-search" class="btn btn-ghost btn-icon" data-i18n-attr="title" data-i18n="btn_search_title">
+              <span class="material-symbols-outlined">search</span>
+            </button>
+            <button id="btn-shortcut-sound" class="btn btn-ghost btn-icon" title="Sons">
+              <span id="shortcut-icon-sound-on" class="material-symbols-outlined">volume_up</span>
+              <span id="shortcut-icon-sound-off" class="material-symbols-outlined hidden">volume_off</span>
+            </button>
+            <button id="btn-shortcut-finance" class="btn btn-ghost btn-icon" title="Financeiro">
+              <div id="shortcut-icon-finance-on">
+                <svg xmlns="http://www.w3.org/2000/svg" height="22px" viewBox="0 -960 960 960" width="22px"
+                  fill="currentColor">
+                  <path
+                    d="M320-414v-306h120v306l-60-56-60 56Zm200 60v-526h120v406L520-354ZM120-216v-344h120v224L120-216Zm0 98 258-258 142 122 224-224h-64v-80h200v200h-80v-64L524-146 382-268 232-118H120Z" />
+                </svg>
+              </div>
+              <div id="shortcut-icon-finance-off" class="hidden" style="opacity: 0.5;">
+                <svg xmlns="http://www.w3.org/2000/svg" height="22px" viewBox="0 -960 960 960" width="22px"
+                  fill="currentColor">
+                  <path
+                    d="M320-414v-306h120v306l-60-56-60 56Zm200 60v-526h120v406L520-354ZM120-216v-344h120v224L120-216Zm0 98 258-258 142 122 224-224h-64v-80h200v200h-80v-64L524-146 382-268 232-118H120Z" />
+                </svg>
+              </div>
+            </button>
+          </div>
+        </div>
+
+
+      </header>
+
+      <!-- MAIN CALENDAR -->
+      <main id="main-content" class="main-content">
+
+        <!-- MONTH VIEW -->
+        <div id="view-month" class="cal-view active">
+          <div class="cal-nav">
+            <button id="btn-today" class="btn btn-ghost btn-sm-text" data-i18n="btn_today"
+              style="font-size: 18px;">Hoje</button>
+            <div class="cal-nav-btns">
+              <button id="btn-prev-month" class="btn btn-ghost btn-icon-sm">
+                <span class="material-symbols-outlined">chevron_left</span>
+              </button>
+
+              <div id="month-title" class="cal-title"></div>
+
+              <button id="btn-next-month" class="btn btn-ghost btn-icon-sm">
+                <span class="material-symbols-outlined">chevron_right</span>
+              </button>
+            </div>
+          </div>
+          <!-- FINANCE GLOBAL SUMMARY -->
+          <div id="finance-global-summary-container" style="position: relative;">
+            <button id="btn-close-global-finance" class="btn btn-ghost btn-icon-sm"
+              style="position: absolute; top: 8px; right: 2px; width: 24px; height: 24px; padding: 0;">
+              <span class="material-symbols-outlined" style="font-size: 14px; color: var(--text3);">close</span>
+            </button>
+            <div id="finance-global-summary" class="finance-summary-grid"
+              style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 10px 14px; padding-right: 28px; background: var(--surface); border-bottom: 1px solid var(--border);">
+              <div
+                style="background: #eef2ff; padding: 8px; border-radius: 12px; text-align: center; border: 1px solid #c7d2fe;">
+                <div style="font-size: 0.9rem; color: #4338ca; text-transform: uppercase; " data-i18n="finance_income">
+                  Receitas</div>
+                <div id="glb-total-income" style="font-size: 1.1rem;  color: #1e1b4b; line-height: 1;">
+                  R$ 0,00</div>
+              </div>
+              <div
+                style="background: #fff1f2; padding: 8px; border-radius: 12px; text-align: center; border: 1px solid #fecdd3;">
+                <div style="font-size: 0.9rem; color: #be123c; text-transform: uppercase; "
+                  data-i18n="finance_expenses">Despesas</div>
+                <div id="glb-total-expenses" style="font-size: 1.1rem;  color: #4c0519; line-height: 1;">R$ 0,00</div>
+              </div>
+              <div
+                style="background: #f0fdf4; padding: 8px; border-radius: 12px; text-align: center; border: 1px solid #bbf7d0;">
+                <div style="font-size: 0.9rem; color: #15803d; text-transform: uppercase; " data-i18n="finance_balance">
+                  Saldo</div>
+                <div id="glb-total-balance" style="font-size: 1.1rem;  color: #052e16; line-height: 1;">R$ 0,00</div>
+              </div>
+            </div>
+          </div>
+          <div class="cal-weekdays" id="cal-weekdays">
+            <!-- Rendered by JS via i18n -->
+          </div>
+          <div id="month-swiper" class="month-swiper">
+            <div id="month-slides-wrapper" class="month-slides-wrapper">
+              <!-- 12 slides generated via JS for current year -->
+            </div>
+          </div>
+          <!-- Botões de navegação absoluta -->
+          <button id="btn-prev-month-abs" class="btn-nav-abs">
+            <span class="material-symbols-outlined">chevron_left</span>
+          </button>
+          <button id="btn-next-month-abs" class="btn-nav-abs">
+            <span class="material-symbols-outlined">chevron_right</span>
+          </button>
+        </div>
+
+        <!-- WEEK VIEW -->
+        <div id="view-week" class="cal-view">
+          <div class="cal-nav">
+            <button id="btn-today-week" class="btn btn-ghost btn-sm-text"
+              style="font-size: 0.8rem; padding: 4px 12px; border-radius: 20px;">
+              <span data-i18n="btn_today">Hoje</span>
+            </button>
+            <div class="cal-nav-btns" style="display: flex; align-items: center; gap: 8px;">
+              <button id="btn-prev-week" class="btn btn-ghost btn-icon-sm">
+                <span class="material-symbols-outlined">chevron_left</span>
+              </button>
+              <div id="week-title" class="cal-title"
+                style="font-size: 1rem; min-width: 140px; text-align: center; white-space: nowrap;">
+              </div>
+              <button id="btn-next-week" class="btn btn-ghost btn-icon-sm">
+                <span class="material-symbols-outlined">chevron_right</span>
+              </button>
+            </div>
+          </div>
+          <div id="week-finance-summary-container" style="position: relative;">
+            <button id="btn-close-week-finance" class="btn btn-ghost btn-icon-sm"
+              style="position: absolute; top: 8px; right: 2px; width: 24px; height: 24px; padding: 0; z-index: 5;">
+              <span class="material-symbols-outlined" style="font-size: 14px; color: var(--text3);">close</span>
+            </button>
+            <div id="week-finance-summary" class="finance-summary-grid"
+              style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; padding: 10px 14px; padding-right: 28px; background: var(--surface); border-bottom: 1px solid var(--border); cursor: pointer;">
+              <!-- JS -->
+            </div>
+          </div>
+          <div class="week-grid-header" id="week-grid-header"
+            style="display: flex; background: var(--border); border-bottom: 1px solid var(--border);">
+            <!-- Rendered by JS -->
+          </div>
+          <div id="week-grid" class="week-grid"
+            style="flex: 1; overflow-y: auto; display: flex; flex-direction: column;">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- YEAR VIEW -->
+        <div id="view-year" class="cal-view">
+          <div class="cal-nav" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <button id="btn-back-to-month" class="btn btn-ghost btn-sm-text" data-i18n="btn_back_month"
+              style="font-size: 16px; padding: 4px 8px; margin-right: 10px;">Voltar</button>
+
+            <div class="cal-nav-btns" style="flex: 1; display: flex; justify-content: end; align-items: center;">
+              <button id="btn-prev-year" class="btn btn-ghost btn-icon-sm">
+                <span class="material-symbols-outlined">chevron_left</span>
+              </button>
+
+              <div id="year-title" class="cal-title" style="width: 100px !important; text-align: center;"></div>
+              <button id="btn-next-year" class="btn btn-ghost btn-icon-sm">
+                <span class="material-symbols-outlined">chevron_right</span>
+              </button>
+            </div>
+          </div>
+          <div id="year-summary-container" class="year-summary-container">
+            <!-- Rendered by JS: Annual Totals and Chart -->
+          </div>
+          <div id="year-grid" class="year-grid"></div>
+        </div>
+
+
+        <!-- BUSINESS VIEW -->
+        <div id="view-business" class="cal-view" style="display: none; flex-direction: column; height: 100%;">
+          <!-- Tabs -->
+          <div class="business-tabs"
+            style="display: flex; gap: 8px; padding: 12px; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto;">
+            <button class="btn btn-outline btn-sm business-tab-btn solid active" data-tab="professional"
+              style="white-space: nowrap;">Profissionais</button>
+            <button class="btn btn-outline btn-sm business-tab-btn" data-tab="product"
+              style="white-space: nowrap;">Produtos/Serviços</button>
+            <button class="btn btn-outline btn-sm business-tab-btn active solid" data-tab="client"
+              data-i18n="clients">Clientes</button>
+            <button class="btn btn-outline btn-sm business-tab-btn active solid" data-tab="supplier"
+              data-i18n="suppliers">Fornecedores</button>
+            <button class="btn btn-outline btn-sm business-tab-btn active solid" data-tab="config"
+              data-i18n="business_settings">Config. Empresa</button>
+          </div>
+
+          <!-- Content -->
+          <div id="business-content" style="flex: 1; overflow-y: auto; padding: 16px; position: relative;">
+            <div id="business-list" style="display: flex; flex-direction: column; gap: 12px;"></div>
+
+            <!-- FAB Add Button -->
+            <button id="btn-add-business-entity" class="fab-btn"
+              style="position: fixed; bottom: 24px; right: 24px; width: 56px; height: 56px; border-radius: 50%; background: var(--primary); color: white; border: none; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10;">
+              <span class="material-symbols-outlined" style="font-size: 24px;">add</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- AI VIEW -->
+        <div id="viewAI" class="cal-view">
+          <iframe id="meuIframe" src="agent.html">
+
+          </iframe>
+        </div>
+
+      </main>
+    </div>
+
+  </div>
+
+  <!-- ===== MODALS ===== -->
+
+  <!-- ===== MODAL ONBOARDING SOUND ===== -->
+  <div id="modal-onboarding-sound" class="modal-overlay hidden">
+    <div class="modal-sheet modal-sheet-auto">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <div data-i18n="modal_sound_title">Sons da Agenda</div>
+      </div>
+      <div class="modal-body text-center">
+        <div
+          style="width: 64px; height: 64px; background: var(--primary-lt); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+          <span class="material-symbols-outlined" style="font-size: 32px; color: var(--primary);">volume_up</span>
+        </div>
+        <p data-i18n="modal_sound_body" style="color: var(--text2); line-height: 1.5; margin-bottom: 24px;"></p>
+        <div style="display: flex; flex-direction: column; gap: 12px;">
+          <button class="btn btn-primary btn-full" onclick="setOnboardingSound(true)" data-i18n="btn_sound_yes">
+            Sim, manter sons
+          </button>
+          <button class="btn btn-ghost btn-full" onclick="setOnboardingSound(false)" data-i18n="btn_sound_no"
+            style="color: var(--text3);">
+            Não, desativar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== MODAL LOGOUT ===== -->
+
+  <!-- SCALE SETUP MODAL -->
+  <div id="modal-scale" class="modal-overlay hidden">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <div class="modal-title" data-i18n="scale_modal_title">Configurar Escala</div>
+        <button id="btn-close-scale" class="btn btn-ghost btn-icon-sm modal-close" onclick="dismissScaleModal()">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+
+      <div class="modal-body" id="scale-modal-body">
+        <div id="scale-step-initial">
+          <p class="modal-desc" data-i18n="scale_desc">Configure seu padrão (Padrão Semanal ou Presets).</p>
+
+          <div class="field-group" style="display: none;">
+            <label class="field-label" data-i18n="scale_presets_label">Presets Comuns</label>
+            <div class="cat-grid" style="grid-template-columns: 1fr 1fr; gap: 8px;">
+              <button type="button" class="btn btn-outline btn-sm-text" onclick="applyPreset('4_serv')"
+                style="display: none;">4-Serv. (4ª
+                1º)</button>
+              <button type="button" class="btn btn-outline btn-sm-text" onclick="applyPreset('5_serv')"
+                style="display: none;">5-Serv. (4ª
+                1º)</button>
+              <button type="button" class="btn btn-outline btn-sm-text"
+                onclick="applyPreset('dobradinha')">Dobradinha</button>
+              <button type="button" class="btn btn-outline btn-sm-text" onclick="applyPreset('12x36')">12/36</button>
+              <button type="button" class="btn btn-outline btn-sm-text" onclick="applyPreset('admin')"
+                style="display: none;">Administrativo</button>
+
+              <button type="button" class="btn btn-outline btn-sm-text" onclick="applyPreset('24x72')"
+                style="display: none;">24/72</button>
+            </div>
+          </div>
+
+
+
+
+          <div class="scale-preview-wrap"
+            style="height: auto; overflow-y: auto; margin-top: 10px; padding-bottom: 20px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--bg); margin-bottom: 10px;">
+            <div id="scale-weekday-grid" style="margin-bottom: 10px; padding-top: 10px;"></div>
+
+            <div class="field-group" style="padding: 0 16px; display: none;">
+              <label class="field-label" style="text-align: center; display: block; opacity: 0.7;">Tamanho do
+                Ciclo</label>
+              <div style="display: flex; gap: 8px;">
+                <button type="button" class="btn btn-outline btn-sm flex-1" onclick="modifyWeeks(-1)">
+                  <span class="material-symbols-outlined" style="font-size: 18px;">remove</span> Semana
+                </button>
+                <button type="button" class="btn btn-outline btn-sm flex-1" onclick="modifyWeeks(1)">
+                  <span class="material-symbols-outlined" style="font-size: 18px;">add</span> Semana
+                </button>
+              </div>
+
+
+            </div>
+
+          </div>
+
+          <div style="background: var(--surface); padding: 16px; border-radius: 16px; border: 1px solid var(--border);">
+            <div data-i18n="tutorial_title"
+              style="margin: 0 0 12px; font-size: 0.8rem;  color: var(--text2); letter-spacing: 0.5px;">
+              Dicas de uso</div>
+
+            <!-- Dots Legend -->
+            <div style="display: flex; gap: 16px; margin-bottom: 16px;">
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <div
+                  style="width: 8px; height: 8px; border-radius: 50%; background: #dc2626; box-shadow: 0 0 4px rgba(220, 38, 38, 0.4);">
+                </div>
+                <span data-i18n="tutorial_work_dot" style="font-size: 0.75rem; color: var(--text2);">Trabalho</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <div
+                  style="width: 8px; height: 8px; border-radius: 50%; background: #16a34a; box-shadow: 0 0 4px rgba(22, 163, 74, 0.4);">
+                </div>
+                <span data-i18n="tutorial_off_dot" style="font-size: 0.75rem; color: var(--text2);">Folga</span>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <span class="material-symbols-outlined" style="font-size: 18px; color: var(--primary);">touch_app</span>
+                <p class="scale-hint" data-i18n="scale_hint">* Clique nos dias para ajustar.</p>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+
+
+              </div>
+            </div>
+          </div>
+          <p id="scale-error" class="form-error" style="text-align: center; margin-top: 8px; "></p>
+          <div class="modal-footer">
+            <button id="btn-clear-seq" class="btn btn-ghost btn-sm" data-i18n="btn_clear">Limpar</button>
+            <button type="button" class="btn btn-ghost btn-sm" onclick="dismissScaleModal()"
+              data-i18n="scale_configure_later">Configurar
+              depois</button>
+            <button id="btn-save-scale" class="btn btn-primary flex-1" disabled data-i18n="btn_save_scale">Salvar
+              Escala</button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DAY DETAILS MODAL -->
+  <div id="modal-day" class="modal-overlay hidden">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <div>
+          <span id="day-modal-weekday" class="modal-subtitle"></span>
+          <div id="day-modal-title" class="modal-title"></div>
+        </div>
+        <button id="btn-close-day" class="btn btn-ghost btn-icon-sm modal-close">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+
+
+
+        <div id="day-work-status" class="work-status-card"></div>
+
+        <div id="buttonActionModal">
+          <button id="btn-add-from-day" class="btn btn-outline flex-1" style="border-radius: 14px; height: 48px;">
+            <span class="material-symbols-outlined" style="margin-right: 8px;">add</span>
+            <span data-i18n="btn_add_event">Evento</span>
+          </button>
+          <button id="btn-add-fin-from-day" class="btn btn-primary flex-1" style="border-radius: 14px; height: 48px;">
+            <span class="material-symbols-outlined" style="margin-right: 8px;">payments</span>
+            <span data-i18n="finance_add">Finança</span>
+          </button>
+        </div>
+
+        <div style="font-size: 0.75rem;   text-transform: uppercase; margin: 16px 0 8px; letter-spacing: 0.5px;"
+          data-i18n="cat_evento">Eventos</div>
+        <div id="day-events-list" class="events-list"></div>
+
+        <div style="font-size: 0.75rem;  text-transform: uppercase; margin: 16px 0 8px; letter-spacing: 0.5px;"
+          data-i18n="finance_title">Finanças</div>
+        <div id="day-finance-list" class="events-list"></div>
+
+
+
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- EVENT FORM MODAL -->
+  <div id="modal-event" class="modal-overlay hidden">
+    <div class="modal-sheet modal-sheet-tall">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <div id="event-modal-title" class="modal-title">Novo Evento</div>
+        <div class="flex gap-2 items-center">
+          <span id="event-work-badge" class="work-badge hidden"></span>
+          <button id="btn-close-event" class="btn btn-ghost btn-icon-sm modal-close">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <form id="event-form" autocomplete="off">
+          <input type="hidden" id="evt-id" />
+          <div class="field-group">
+            <label class="field-label" data-i18n="evt_title_label">Título *</label>
+            <input id="evt-title" class="field-input" type="text" data-i18n="evt_title_placeholder"
+              data-i18n-attr="placeholder" placeholder="Nome do evento" />
+            <p id="err-title" class="form-error hidden" data-i18n="evt_title_error">Título é obrigatório</p>
+          </div>
+          <div class="field-group">
+            <label class="field-label" data-i18n="evt_desc_label">Descrição</label>
+            <textarea id="evt-desc" class="field-input" data-i18n-attr="placeholder" data-i18n="evt_desc_placeholder"
+              rows="3"></textarea>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" data-i18n="label_professional">Profissional</label>
+            <select id="evt-professional" class="field-input">
+              <option value="">- SELECIONE -</option>
+            </select>
+          </div>
+
+          <div class="field-group" id="evt-services-group">
+            <label class="field-label" data-i18n="label_services">Serviços</label>
+            <div id="evt-services-list" style="display: flex; flex-wrap: wrap; gap: 8px;">
+              <!-- JS rendered -->
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field-group flex-1">
+              <label class="field-label" data-i18n="evt_start_date_label">Data Início *</label>
+              <input id="evt-date" class="field-input" type="text" placeholder="dd/mm/aaaa" />
+              <p id="err-date" class="form-error hidden" data-i18n="evt_date_error">Data inválida</p>
+            </div>
+            <div class="field-group flex-1">
+              <label class="field-label" data-i18n="evt_start_time_label">Hora Início</label>
+              <input id="evt-time" class="field-input" type="text" placeholder="00:00" />
+            </div>
+          </div>
+          <div id="evt-end-row" class="field-row hidden">
+            <div class="field-group flex-1">
+              <label class="field-label" data-i18n="evt_end_date_label">Data Fim</label>
+              <input id="evt-end-date" class="field-input" type="text" placeholder="dd/mm/aaaa" />
+            </div>
+            <div class="field-group flex-1">
+              <label class="field-label" data-i18n="evt_end_time_label">Hora Fim</label>
+              <input id="evt-end-time" class="field-input" type="text" placeholder="00:00" />
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field-group flex-1">
+              <label class="field-label" data-i18n="evt_recurrence_label">Recorrência</label>
+              <select id="evt-recurrence" class="field-input field-select">
+                <option value="none" data-i18n="recurrence_none">Não se repete</option>
+                <option value="periodo" data-i18n="recurrence_periodo">Definir período</option>
+                <option value="daily" data-i18n="recurrence_daily">Diariamente</option>
+                <option value="weekly" data-i18n="recurrence_weekly">Semanalmente</option>
+                <option value="monthly" data-i18n="recurrence_monthly">Mensalmente</option>
+                <option value="yearly" data-i18n="recurrence_yearly">Anualmente</option>
+              </select>
+            </div>
+            <div class="field-group flex-1">
+              <label class="field-label" data-i18n="label_payment_method">Forma de Pagamento</label>
+              <select id="evt-payment" class="field-input">
+                <option value="none">- SELECIONE -</option>
+                <option value="cash" data-i18n="pay_cash">Dinheiro</option>
+                <option value="credit" data-i18n="pay_credit">Card Crédito</option>
+                <option value="debit" data-i18n="pay_debit">Card Débito</option>
+                <option value="pix" data-i18n="pay_pix">PIX</option>
+                <option value="transfer" data-i18n="pay_transfer">Transferência</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-group">
+            <label class="field-label" data-i18n="evt_cat_label">Categoria</label>
+            <div class="cat-grid" id="cat-grid">
+              <button type="button" class="cat-btn active" data-cat="evento">
+                <span class="material-symbols-outlined"
+                  style="display:block; font-size:20px; margin-bottom:4px;">event</span>
+                <span data-i18n="cat_evento">Evento</span>
+              </button>
+              <button type="button" class="cat-btn" data-cat="aniversario">
+                <span class="material-symbols-outlined"
+                  style="display:block; font-size:20px; margin-bottom:4px;">cake</span>
+                <span data-i18n="cat_aniversario">Aniversário</span>
+              </button>
+              <button type="button" class="cat-btn" data-cat="trabalho">
+                <span class="material-symbols-outlined"
+                  style="display:block; font-size:20px; margin-bottom:4px;">work</span>
+                <span data-i18n="cat_trabalho">Trabalho</span>
+              </button>
+              <button type="button" class="cat-btn" data-cat="pessoal">
+                <span class="material-symbols-outlined"
+                  style="display:block; font-size:20px; margin-bottom:4px;">person</span>
+                <span data-i18n="cat_pessoal">Pessoal</span>
+              </button>
+              <button type="button" class="cat-btn" data-cat="saude">
+                <span class="material-symbols-outlined"
+                  style="display:block; font-size:20px; margin-bottom:4px;">favorite</span>
+                <span data-i18n="cat_saude">Saúde</span>
+              </button>
+              <button type="button" class="cat-btn" data-cat="estudo">
+                <span class="material-symbols-outlined"
+                  style="display:block; font-size:20px; margin-bottom:4px;">school</span>
+                <span data-i18n="cat_estudo">Estudo</span>
+              </button>
+            </div>
+          </div>
+          <div id="event-recurring-options" class="hidden"
+            style="margin-top: 8px; margin-bottom: 8px; padding: 12px; background: var(--surface2); border: 1px dashed var(--border); border-radius: var(--radius-sm);">
+            <button type="button" id="btn-ignore-event-instance" class="btn btn-outline btn-sm btn-full"
+              style="color: var(--danger); border-color: var(--danger-lt);">
+              <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 6px;">event_busy</span>
+              <span data-i18n="btn_ignore_instance">Desconsiderar neste dia</span>
+            </button>
+          </div>
+
+
+
+          <div class="form-actions">
+            <button type="button" id="btn-delete-event" class="btn btn-danger hidden">
+              <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 6px;">delete</span>
+              <span data-i18n="btn_delete">Excluir</span>
+            </button>
+            <div class="flex gap-2 flex-1">
+              <button type="button" id="btn-cancel-event" class="btn btn-outline flex-1"
+                data-i18n="btn_cancel">Cancelar</button>
+              <button type="submit" id="btn-save-event" class="btn btn-primary flex-1"
+                data-i18n="btn_save">Salvar</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEARCH MODAL -->
+  <div id="modal-search" class="modal-overlay hidden">
+    <div class="modal-sheet modal-sheet-full">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <div style="display: flex; align-items: baseline; gap: 8px;">
+          <div class="modal-title" data-i18n="search_title">Pesquisar Eventos</div>
+          <span id="events-count" class="events-count">0 <span data-i18n="events_count_zero">eventos</span></span>
+        </div>
+        <button id="btn-close-search" class="btn btn-ghost btn-icon-sm modal-close">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body search-body">
+        <div class="search-bar">
+          <span class="material-symbols-outlined" style="color: var(--text3);">search</span>
+          <input id="search-input" class="search-input" type="text" data-i18n="search_placeholder"
+            data-i18n-attr="placeholder" placeholder="Buscar por título, data, categoria..." />
+        </div>
+        <div id="search-results" class="events-list search-results"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOGOUT CONFIRM MODAL -->
+  <div id="modal-logout" class="modal-overlay hidden">
+    <div class="modal-sheet modal-sheet-auto">
+      <div class="modal-handle"></div>
+      <div class="modal-body text-center">
+        <div class="logout-icon" style="background: rgba(239, 68, 68, 0.1); color: #ef4444;">
+          <span class="material-symbols-outlined" style="font-size: 32px;">logout</span>
+        </div>
+        <div class="logout-title" data-i18n="logout_title">Sair da Conta?</div>
+        <p class="logout-desc" data-i18n="logout_desc">Você precisará do seu login de 7 dígitos para entrar novamente.
+        </p>
+        <div class="logout-actions">
+          <button id="btn-cancel-logout" class="btn btn-outline flex-1" data-i18n="btn_logout_cancel">Cancelar</button>
+          <button id="btn-confirm-logout" class="btn btn-danger flex-1" data-i18n="btn_logout_confirm">Sair</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GLOBAL CONFIRM MODAL -->
+  <div id="modal-confirm" class="modal-overlay hidden">
+    <div class="modal-sheet modal-sheet-auto" style="z-index: 10000;">
+      <div class="modal-handle"></div>
+      <div class="modal-body text-center" style="padding-top: 10px;">
+        <div class="confirm-icon"
+          style="background: rgba(239, 68, 68, 0.1); color: #ef4444; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+          <span class="material-symbols-outlined" style="font-size: 32px;">help</span>
+        </div>
+        <div id="confirm-title" style="margin-bottom: 8px; font-size: 1.2rem;  color: var(--text);">
+          Atenção</div>
+        <p id="confirm-desc" style="font-size: 0.9rem; color: var(--text2); margin-bottom: 24px;">Tem certeza?</p>
+        <div style="display: flex; gap: 12px; width: 100%;">
+          <button type="button" id="btn-cancel-confirm" class="btn btn-outline flex-1"
+            data-i18n="btn_cancel">Cancelar</button>
+          <button type="button" id="btn-agree-confirm" class="btn btn-danger flex-1"
+            data-i18n="btn_delete">Confirma</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RECURRING EDIT CHOICE MODAL -->
+  <div id="modal-recurrence-choice" class="modal-overlay hidden" style="z-index: 10001;">
+    <div class="modal-sheet modal-sheet-auto">
+      <div class="modal-handle"></div>
+      <div class="modal-body text-center" style="padding-top: 10px;">
+        <div class="confirm-icon"
+          style="background: rgba(59, 130, 246, 0.1); color: #3b82f6; width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+          <span class="material-symbols-outlined" style="font-size: 32px;">rule</span>
+        </div>
+        <div data-i18n="confirm_recurrence_edit_title"
+          style="margin-bottom: 8px; font-size: 1.2rem;  color: var(--text);">Editar Repetição</div>
+        <p data-i18n="confirm_recurrence_edit_desc"
+          style="font-size: 0.9rem; color: var(--text2); margin-bottom: 24px;">Deseja aplicar as edições em todas as
+          ocorrências desta série ou somente nesta data específica?</p>
+        <div style="display: flex; flex-direction: column; gap: 10px; width: 100%;">
+          <button type="button" id="btn-save-recurring-all" class="btn btn-primary" data-i18n="btn_apply_all">Toda a
+            Série</button>
+          <button type="button" id="btn-save-recurring-instance" class="btn btn-outline"
+            data-i18n="btn_apply_instance">Somente nesta</button>
+          <button type="button" id="btn-cancel-recurring-choice" class="btn btn-ghost btn-full" data-i18n="btn_cancel"
+            style="color: var(--text3);">Cancelar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BIBLE MESSAGE MODAL -->
+  <div id="modal-bible" class="modal-overlay hidden">
+    <div class="modal-sheet modal-sheet-auto">
+      <div class="modal-handle"></div>
+      <div class="modal-body text-center" style="padding-top: 20px;">
+        <div class="bible-icon"
+          style="background: var(--primary-lt); color: var(--primary); width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+          <span class="material-symbols-outlined" style="font-size: 32px;">auto_stories</span>
+        </div>
+        <div id="bible-verse-ref" class="logout-title" style="margin-bottom: 8px;"></div>
+        <p id="bible-message" class="logout-desc"
+          style="font-style: italic; font-size: 1.1rem; color: var(--text); line-height: 1.6; margin-bottom: 20px; padding: 0 10px;">
+        </p>
+        <div
+          style="background: var(--surface2); padding: 16px; border-radius: var(--radius); border: 1px solid var(--border); margin-bottom: 24px;">
+          <p id="bible-reflection" style="font-size: 0.9rem; color: var(--text2); line-height: 1.5;"></p>
+        </div>
+        <button id="btn-close-bible" class="btn btn-primary btn-full" data-i18n="btn_amen">Amém</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GENERIC ENTITY MODAL (For Professionals, Products, Clients, Suppliers) -->
+  <div id="modal-entity" class="modal-overlay hidden" style="z-index: 10001;">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <div id="entity-modal-title" class="modal-title">Adicionar</div>
+        <button id="btn-close-entity" class="btn btn-ghost btn-icon-sm modal-close">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="entity-form" style="display: flex; flex-direction: column; gap: 16px;">
+          <input type="hidden" id="entity-type" />
+          <div class="field-group">
+            <label class="field-label" data-i18n="evt_title_label">Nome / Título *</label>
+            <input type="text" id="ent-name" class="field-input" required placeholder="...">
+          </div>
+          <div class="field-group">
+            <label class="field-label" id="ent-f1-label">Campo 1</label>
+            <input type="text" id="ent-f1" class="field-input" placeholder="...">
+          </div>
+          <div class="field-group">
+            <label class="field-label" id="ent-f2-label">Campo 2</label>
+            <input type="text" id="ent-f2" class="field-input" placeholder="...">
+          </div>
+
+          <!-- Extended Fields (Hidden by default) -->
+          <div id="ent-extended-fields" class="hidden">
+            <div class="field-group">
+              <label class="field-label" data-i18n="label_photo">Foto (URL)</label>
+              <input type="text" id="ent-photo" class="field-input" placeholder="https://...">
+            </div>
+            <div id="ent-duration-group" class="field-group hidden">
+              <label class="field-label" data-i18n="label_duration">Duração (min)</label>
+              <input type="number" id="ent-duration" class="field-input" placeholder="30">
+            </div>
+
+            <div id="ent-professional-schedule" class="hidden">
+              <label class="field-label" data-i18n="label_opening_hours">Horário de Trabalho</label>
+              <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <input type="time" id="ent-work-start" class="field-input" value="08:00">
+                <span style="align-self: center;">às</span>
+                <input type="time" id="ent-work-end" class="field-input" value="18:00">
+              </div>
+              <label class="field-label" data-i18n="label_rest_interval">Intervalo de Descanso</label>
+              <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                <input type="time" id="ent-rest-start" class="field-input" value="12:00">
+                <span style="align-self: center;">às</span>
+                <input type="time" id="ent-rest-end" class="field-input" value="13:00">
+              </div>
+
+              <label class="field-label" data-i18n="label_assigned_services">Serviços Vinculados</label>
+              <div id="ent-services-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+                <!-- JS rendered check chips -->
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions" style="margin-top: 20px;">
+            <div class="flex gap-2 flex-1">
+              <button type="submit" id="btn-save-entity" class="btn btn-primary flex-1">Salvar Cadastro</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+  <!-- i18n module (must load before app.js) -->
+  <script src="i18n.js"></script>
+  <script src="app.js"></script>
+
+  <!-- FINANCE MODAL -->
+  <div id="modal-finances" class="modal-overlay hidden">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <div class="modal-title" data-i18n="finance_title">Controle Financeiro</div>
+
+        <button id="btn-close-finances" class="btn btn-ghost btn-icon-sm modal-close">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+          <div style="font-size: 0.9rem;  color: var(--text);" id="finance-month-label" data-i18n="finance_month">Resumo
+            do Mês
+          </div>
+          <button id="btn-add-transaction" class="btn btn-primary btn-sm">
+            <span class="material-symbols-outlined" style="font-size: 18px;">add</span>
+            <span data-i18n="finance_add">Novo</span>
+          </button>
+        </div>
+        <div class="finance-summary-grid"
+          style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 20px;">
+          <div
+            style="background: #eef2ff; padding: 12px; border-radius: 12px; text-align: center; border: 1px solid #c7d2fe;">
+            <div style="font-size: 0.65rem; color: #4338ca; text-transform: uppercase; " data-i18n="finance_income">
+              Receitas</div>
+            <div id="fin-total-income" style="font-size: 1.1rem;  color: #1e1b4b; line-height: 1;">R$
+              0,00</div>
+          </div>
+          <div
+            style="background: #fff1f2; padding: 12px; border-radius: 12px; text-align: center; border: 1px solid #fecdd3;">
+            <div style="font-size: 0.65rem; color: #be123c; text-transform: uppercase; " data-i18n="finance_expenses">
+              Despesas</div>
+            <div id="fin-total-expenses" style="font-size: 1.1rem;  color: #4c0519; line-height: 1;">R$
+              0,00</div>
+          </div>
+          <div
+            style="background: #f0fdf4; padding: 12px; border-radius: 12px; text-align: center; border: 1px solid #bbf7d0;">
+            <div style="font-size: 0.65rem; color: #15803d; text-transform: uppercase; " data-i18n="finance_balance">
+              Saldo</div>
+            <div id="fin-total-balance" style="font-size: 1.1rem;  color: #052e16; line-height: 1;">R$
+              0,00</div>
+          </div>
+        </div>
+
+        <div id="finance-list"
+          style="display: flex; flex-direction: column; gap: 8px; max-height: 50vh; overflow-y: auto; padding-right: 4px; min-height: 50vh;">
+          <!-- List handled by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRANSACTION MODAL -->
+  <div id="modal-transaction" class="modal-overlay hidden">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <div class="modal-title" data-i18n="finance_add">Nova Transação</div>
+        <button id="btn-close-transaction" class="btn btn-ghost btn-icon-sm modal-close">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="transaction-form" style="display: flex; flex-direction: column; gap: 16px;">
+          <div class="field-row">
+            <div class="field-group flex-1">
+              <label class="field-label" data-i18n="finance_type_select">Defina o tipo de transação</label>
+              <div class="view-switcher" style="width:100%">
+                <button type="button" id="trans-type-income" class="view-btn flex-1 active">
+                  <span class="material-symbols-outlined">trending_up</span>
+                  <span data-i18n="finance_type_income">Receita</span>
+                </button>
+                <button type="button" id="trans-type-expense" class="view-btn flex-1">
+                  <span class="material-symbols-outlined">trending_down</span>
+                  <span data-i18n="finance_type_expense">Despesa</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" data-i18n="finance_desc">Descrição</label>
+            <input type="text" id="trans-desc" class="field-input" data-i18n-attr="placeholder"
+              data-i18n="finance_desc">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="field-group">
+              <label class="field-label" data-i18n="label_professional">Profissional</label>
+              <select id="trans-professional" class="field-input">
+                <option value="">- SELECIONE -</option>
+              </select>
+            </div>
+            <div class="field-group">
+              <label class="field-label" data-i18n="label_payment_method">Forma de Pagamento</label>
+              <select id="trans-payment" class="field-input">
+                <option value="none">- SELECIONE -</option>
+                <option value="cash" data-i18n="pay_cash">Dinheiro</option>
+                <option value="credit" data-i18n="pay_credit">Card Crédito</option>
+                <option value="debit" data-i18n="pay_debit">Card Débito</option>
+                <option value="pix" data-i18n="pay_pix">PIX</option>
+                <option value="transfer" data-i18n="pay_transfer">Transferência</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="field-group" id="trans-services-group">
+            <label class="field-label" data-i18n="label_services">Serviços</label>
+            <div id="trans-services-list" style="display: flex; flex-wrap: wrap; gap: 4px;">
+              <!-- JS rendered -->
+            </div>
+          </div>
+
+          <div class="field-row">
+            <div class="field-group flex-1">
+              <label class="field-label" data-i18n="finance_amount">Valor</label>
+              <input type="number" step="0.01" id="trans-amount" class="field-input" required placeholder="0,00">
+            </div>
+            <div class="field-group flex-1">
+              <label class="field-label" data-i18n="finance_date">Data</label>
+              <input type="text" id="trans-date" class="field-input" required>
+            </div>
+            <div class="field-group flex-1" style="width: 80px;">
+              <label class="field-label">Hora</label>
+              <input type="time" id="trans-time" class="field-input " value="08:00">
+            </div>
+          </div>
+
+          <div id="trans-recurring-options" class="hidden"
+            style="margin-top: 8px; margin-bottom: 8px; padding: 12px; background: var(--surface2); border: 1px dashed var(--border); border-radius: var(--radius-sm);">
+            <button type="button" id="btn-ignore-trans-instance" class="btn btn-outline btn-sm btn-full"
+              style="color: var(--danger); border-color: var(--danger-lt);">
+              <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 6px;">event_busy</span>
+              <span data-i18n="btn_ignore_instance">Desconsiderar neste dia</span>
+            </button>
+          </div>
+          <div class="field-row">
+            <div class="field-group flex-1">
+              <label class="field-label" data-i18n="evt_recurrence_label">Recorrência</label>
+              <select id="trans-recurrence" class="field-input field-select">
+                <option value="none" data-i18n="recurrence_none">Não se repete</option>
+                <option value="daily" data-i18n="recurrence_daily">Diariamente</option>
+                <option value="weekly" data-i18n="recurrence_weekly">Semanalmente</option>
+                <option value="monthly" data-i18n="recurrence_monthly">Mensalmente</option>
+                <option value="yearly" data-i18n="recurrence_yearly">Anualmente</option>
+              </select>
+            </div>
+
+            <div class="field-group flex-1 hidden" id="group-installments">
+              <label class="field-label" data-i18n="finance_installments">Qtd. de Vezes</label>
+              <input type="number" id="trans-installments" class="field-input" min="0" placeholder="Ilimitado">
+            </div>
+          </div>
+
+          <div class="form-actions" style="margin-top: 20px;">
+            <button type="button" id="btn-delete-transaction" class="btn btn-danger hidden">
+              <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 6px;">delete</span>
+              <span data-i18n="btn_delete">Excluir</span>
+            </button>
+            <div class="flex gap-2 flex-1">
+              <button type="submit" id="btn-save-transaction" class="btn btn-primary flex-1"
+                data-i18n="btn_save_transaction">Salvar Transação</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================
+    // LANGUAGE PICKER — Aparece 1x ao abrir
+    // Só mostra se o usuário ainda não escolheu
+    // =========================================
+    (function () {
+      const overlay = document.getElementById('lang-picker-overlay');
+      const STORAGE_KEY = 'agbizu_lang';
+
+      // Se já tem idioma salvo, fecha o picker imediatamente sem animação
+      if (localStorage.getItem(STORAGE_KEY)) {
+        overlay.style.display = 'none';
+      }
+
+      // Expõe globais para os botões no HTML
+      let _selectedLang = null;
+
+      window.openLangPicker = function () {
+        overlay.style.display = 'flex';
+        // Se já tiver idioma, seleciona o botão correspondente e mostra botão fechar
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          lpSelect(saved);
+          document.getElementById('lp-header')?.classList.remove('hidden');
+        } else {
+          document.getElementById('lp-header')?.classList.add('hidden');
+        }
+        if (typeof toggleSideMenu === 'function') toggleSideMenu(false);
+      };
+
+      window.lpClose = function () {
+        overlay.classList.add('hide');
+        setTimeout(() => {
+          overlay.style.display = 'none';
+          overlay.classList.remove('hide');
+        }, 300);
+      };
+
+      window.lpSelect = function (lang) {
+        _selectedLang = lang;
+        document.getElementById('lp-btn-pt').classList.toggle('selected', lang === 'pt');
+        document.getElementById('lp-btn-en').classList.toggle('selected', lang === 'en');
+        const confirmBtn = document.getElementById('lp-confirm');
+        confirmBtn.disabled = false;
+        // Atualiza o texto do botão Confirmar conforme idioma escolhido
+        confirmBtn.textContent = lang === 'pt' ? 'Continuar →' : 'Continue →';
+      };
+
+      window.lpConfirm = function () {
+        setTimeout(() => {
+          overlay.style.display = 'none';
+          overlay.classList.remove('hide');
+
+          const iframe = document.getElementById("meuIframe");
+          if (iframe) {
+            iframe.src = iframe.src;
+          }
+
+        }, 300);
+        if (!_selectedLang) return;
+
+        // Salva o idioma via i18n
+        if (typeof i18n !== 'undefined') {
+          i18n.setLang(_selectedLang);
+        } else {
+          localStorage.setItem(STORAGE_KEY, _selectedLang);
+        }
+
+        // Inicia o splash de carregamento apenas se o app ainda não tiver inicializado
+        // Mas para evitar travamentos relatados, vamos garantir que o hideLoading seja chamado ou não trave aqui.
+        // Se o app já inicializou no fundo, não precisamos de novo splash.
+        if (typeof hideLoading === 'function') hideLoading();
+
+        // Toca som se disponível
+        if (typeof play === 'function') play('click');
+
+        overlay.classList.add('hide');
+        // Define cooldown para evitar clique fantasm no calendário atrás
+        if (typeof S !== 'undefined') S.lastModalClose = Date.now();
+
+        setTimeout(() => {
+          overlay.style.display = 'none';
+          overlay.classList.remove('hide');
+        }, 300);
+
+      };
+    })();
+  </script>
+
+  <script>
+    // =========================================
+    // DETECÇÃO DE TECLADO MOBILE — index.html
+    // Funciona em todos os inputs e modais
+    // =========================================
+    (function () {
+      if (!window.visualViewport) return;
+
+      const vv = window.visualViewport;
+
+      function onKeyboardChange() {
+        const keyboardH = window.innerHeight - vv.height - vv.offsetTop;
+        const offset = keyboardH > 60 ? keyboardH : 0;
+        document.body.style.paddingBottom = offset + 'px';
+
+        // Se houver um modal-sheet visível, ajusta o scroll dele também
+        const activeSheet = document.querySelector('.modal-overlay:not(.hidden) .modal-body.modal-scroll');
+        if (activeSheet && offset > 0) {
+          activeSheet.scrollTop = activeSheet.scrollHeight;
+        }
+      }
+
+      vv.addEventListener('resize', onKeyboardChange);
+      vv.addEventListener('scroll', onKeyboardChange);
+
+      // Quando qualquer input/textarea perder o foco, remove o offset
+      document.addEventListener('focusout', () => {
+        setTimeout(() => {
+          const anyFocused = document.querySelector('input:focus, textarea:focus, select:focus');
+          if (!anyFocused) {
+            document.body.style.paddingBottom = '0px';
+          }
+        }, 100);
+      });
+    })();
+  </script>
+
+  <script>
+    // =========================================
+    // FAB AGENT — simples e direto
+    // =========================================
+    // =========================================
+    // MULTI-ACTION FAB (SPEED DIAL)
+    // =========================================
+    window.showAgentFab = function () {
+      var session = localStorage.getItem('agbizu_session');
+      var w = document.getElementById('fab-wrapper');
+      if (w && session) w.classList.remove('hide');
+    };
+
+    window.hideAgentFab = function () {
+      var w = document.getElementById('fab-wrapper');
+      if (w) {
+        w.classList.add('hide');
+        w.classList.remove('open');
+      }
+    };
+
+    window.toggleFabMenu = function (e) {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      var w = document.getElementById('fab-wrapper');
+      var icon = document.getElementById('fab-icon');
+      if (w) {
+        w.classList.toggle('open');
+        if (typeof play === 'function') play('click');
+
+        // Auto-close overlay listener
+        if (w.classList.contains('open')) {
+          document.addEventListener('click', closeFabOnOutsideClick);
+        } else {
+          document.removeEventListener('click', closeFabOnOutsideClick);
+        }
+      }
+    };
+
+    function closeFabOnOutsideClick(e) {
+      const w = document.getElementById('fab-wrapper');
+      if (w && !w.contains(e.target)) {
+        w.classList.remove('open');
+        document.removeEventListener('click', closeFabOnOutsideClick);
+      }
+    }
+
+    window.handleFabAction = function (action) {
+      if (typeof play === 'function') play('click');
+      var w = document.getElementById('fab-wrapper');
+      if (w) w.classList.remove('open');
+      document.removeEventListener('click', closeFabOnOutsideClick);
+
+      setTimeout(function () {
+        switch (action) {
+          case 'agent':
+            window.location.href = 'agent.html';
+            break;
+          case 'event':
+            if (typeof window.closeAnyModal === 'function') window.closeAnyModal();
+            S.selectedDate = new Date();
+            if (typeof openEventForm === 'function') openEventForm();
+            break;
+          case 'transaction':
+            if (typeof window.closeAnyModal === 'function') window.closeAnyModal();
+            if (typeof window.openTransactionForm === 'function') window.openTransactionForm(new Date());
+            break;
+        }
+      }, 200);
+    };
+
+    // Estado inicial: esconde se não tiver sessão (tela de login)
+    document.addEventListener('DOMContentLoaded', function () {
+      var session = localStorage.getItem('agbizu_session');
+      if (!session) {
+        window.hideAgentFab();
+      }
+    });
+  </script>
+  <!-- ===== AGENT FLOATING ACTION BUTTON ===== -->
+  <!-- ===== AGENT FLOATING ACTION BUTTON ===== -->
+  <!-- ===== MULTI-ACTION FAB (SPEED DIAL) ===== -->
+  <div id="fab-wrapper" class="fab-wrapper hide">
+    <div id="fab-menu" class="fab-menu">
+      <!-- Sub Action: Nova Transação -->
+      <div class="fab-action" onclick="handleFabAction('transaction')">
+        <span class="fab-label" data-i18n="finance_add">Nova Transação</span>
+        <div class="fab-sub-btn" style="background: #16a34a;">
+          <span class="material-symbols-outlined">payments</span>
+        </div>
+      </div>
+
+      <!-- Sub Action: Novo Evento -->
+      <div class="fab-action" onclick="handleFabAction('event')">
+        <span class="fab-label" data-i18n="btn_new">Novo Evento</span>
+        <div class="fab-sub-btn" style="background: #3b82f6;">
+          <span class="material-symbols-outlined">event</span>
+        </div>
+      </div>
+
+      <!-- Sub Action: Agente AI -->
+      <div class="fab-action" onclick="handleFabAction('agent')">
+        <span class="fab-label" data-i18n="agent_fab">Agente AI</span>
+        <div class="fab-sub-btn" style="background: var(--primary);">
+          <img src="robo.png" alt="Agent" style="width: 24px; height: 24px; object-fit: contain;">
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Toggle Button -->
+    <button id="fab-main" class="fab-main-btn" onclick="toggleFabMenu(event)">
+      <span class="material-symbols-outlined" id="fab-icon">add</span>
+    </button>
+  </div>
+
+
+  <!-- Modal Quick Add -->
+  <div id="modal-quick-add" class="modal-overlay hidden">
+    <div class="modal-card mini-modal"
+      style="max-width: 300px; border-radius: 8px; padding: 20px; background-color: white;">
+      <div class="modal-header" style="border-bottom: none; padding-bottom: 0;">
+        <div class="menu-brand-name" style="margin-left: 15px; white-space: nowrap;">O que deseja adicionar?</div>
+      </div>
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 12px; padding: 20px;">
+        <button id="btn-quick-add-event" class="btn btn-primary"
+          style="justify-content: center; border-radius: 16px; padding: 14px;">
+          <span class="material-symbols-outlined" style="margin-right: 8px;">calendar_today</span>
+          <span>Evento</span>
+        </button>
+        <button id="btn-quick-add-trans" class="btn btn-outline"
+          style="justify-content: center; border-radius: 16px; padding: 14px; border-color: var(--green); color: var(--green);">
+          <span class="material-symbols-outlined" style="margin-right: 8px;">payments</span>
+          <span>Transação</span>
+        </button>
+        <button class="btn btn-ghost" onclick="closeModal('modal-quick-add')"
+          style="margin-top: 4px; color: var(--text3);">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container"></div>
+</body>
+
+</html>
