@@ -13,7 +13,7 @@ const firebaseConfig = {
 const db = firebase.database();
 
 // ======================== BACKEND API SETUP ========================
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = 'https://agendabusinessbackend.onrender.com/api';
 
 async function apiFetch(path, options = {}) {
   const user = firebase.auth().currentUser;
