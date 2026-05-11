@@ -3371,6 +3371,10 @@ document.addEventListener('DOMContentLoaded', () => {
     vv.addEventListener('resize', updateKeyboard);
     vv.addEventListener('scroll', updateKeyboard);
   }
+
+  // ---- Close buttons for entity/unit modals ----
+  if ($('btn-close-entity')) $('btn-close-entity').onclick = () => closeModal('modal-entity');
+  if ($('btn-close-unit'))   $('btn-close-unit').onclick   = () => closeModal('modal-unit');
 });
 // ======================== FINANCE LOGIC ========================
 function updateFinanceUI() {
