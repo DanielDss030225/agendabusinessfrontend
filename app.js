@@ -1678,6 +1678,7 @@ function renderBusinessTab() {
 
   // Labels
   let addLabel = 'Profissional';
+  if (type === 'unit') addLabel = 'Unidade';
   if (type === 'product') addLabel = 'Produto/Serv.';
   if (type === 'client') addLabel = 'Cliente';
   if (type === 'supplier') addLabel = 'Fornecedor';
@@ -1692,10 +1693,12 @@ function renderBusinessTab() {
     Adicionar ${addLabel}
   `;
 
-  // Força a chamada global para garantir que funcione
+  // For unit tab, use the dedicated unit modal
   addBtn.onclick = () => {
     if (typeof play === 'function') play('click');
-    if (window.openEntityModal) {
+    if (type === 'unit') {
+      window.openUnitModal();
+    } else if (window.openEntityModal) {
       window.openEntityModal(type);
     } else {
       console.error('Função openEntityModal não encontrada!');
@@ -1722,11 +1725,17 @@ function renderBusinessTab() {
     card.style = 'background:var(--surface); padding:16px; border-radius:16px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; transition: transform 0.2s; margin-bottom:12px; cursor:pointer;';
 
     let icon = 'person';
+    if (type === 'unit') icon = 'location_on';
     if (type === 'product') icon = 'inventory_2';
     if (type === 'client') icon = 'person_add';
     if (type === 'supplier') icon = 'local_shipping';
 
-    card.onclick = () => window.openEntityModal(type, item);
+    // For unit tab, use unit modal on click
+    if (type === 'unit') {
+      card.onclick = () => window.openUnitModal(item);
+    } else {
+      card.onclick = () => window.openEntityModal(type, item);
+    }
 
     const photoHtml = item.photo ?
       `<img src="${item.photo}" style="width:40px; height:40px; border-radius:12px; object-fit:cover;">` :
@@ -1734,15 +1743,32 @@ function renderBusinessTab() {
           <span class="material-symbols-outlined">${icon}</span>
         </div>`;
 
+    // Build subtitle for each type
+    let subtitle = '';
+    if (type === 'unit') {
+      const parts = [item.phone, item.street ? `${item.street}${item.city ? ', ' + item.city : ''}` : ''].filter(Boolean);
+      subtitle = parts.join(' • ');
+    } else if (type === 'professional') {
+      const unitName = _getUnitName(item.unitId);
+      const parts = [item.field1 || '', unitName ? `📍 ${unitName}` : ''].filter(Boolean);
+      subtitle = parts.join(' • ');
+    } else {
+      subtitle = `${item.field1 || ''} ${item.field1 && item.field2 ? '•' : ''} ${item.field2 || ''}`;
+    }
+
+    const deleteAction = type === 'unit'
+      ? `window.deleteUnit('${item.id}')`
+      : `deleteEntity('${type}', '${item.id}')`;
+
     card.innerHTML = `
       <div style="display:flex; align-items:center; gap:12px;">
         ${photoHtml}
         <div>
           <div style="font-weight:600; color:var(--text);">${item.name}</div>
-          <div style="font-size:0.8rem; color:var(--text3);">${item.field1 || ''} ${item.field1 && item.field2 ? '•' : ''} ${item.field2 || ''}</div>
+          <div style="font-size:0.8rem; color:var(--text3);">${subtitle}</div>
         </div>
       </div>
-      <button class="btn btn-ghost btn-icon-sm" onclick="event.stopPropagation(); deleteEntity('${type}', '${item.id}')">
+      <button class="btn btn-ghost btn-icon-sm" onclick="event.stopPropagation(); ${deleteAction}">
         <span class="material-symbols-outlined" style="color:var(--danger); font-size:20px;">delete</span>
       </button>
     `;
@@ -1763,6 +1789,62 @@ async function deleteEntity(type, id) {
     alert('Erro ao excluir registro.');
   }
 }
+
+// ===================== UNIT HELPERS =====================
+function _getUnitName(unitId) {
+  if (!unitId) return '';
+  const units = Object.values(S.entities?.unit || {});
+  const u = units.find(u => u.id === unitId);
+  return u ? u.name : '';
+}
+
+function _populateUnitSelect(selectEl, selectedId) {
+  if (!selectEl) return;
+  const units = Object.values(S.entities?.unit || {});
+  selectEl.innerHTML = `<option value="">— Sem unidade —</option>`
+    + units.map(u => `<option value="${u.id}" ${u.id === selectedId ? 'selected' : ''}>${u.name}</option>`).join('');
+}
+
+window.openUnitModal = (data = null) => {
+  const isEdit = !!data;
+  const titleEl = $('unit-modal-title');
+  if (titleEl) titleEl.textContent = isEdit ? 'Editar Unidade' : 'Nova Unidade';
+
+  $('unit-id').value       = data ? data.id     : '';
+  $('unit-name').value     = data ? data.name   : '';
+  $('unit-phone').value    = data ? (data.phone  || '') : '';
+  $('unit-cnpj').value     = data ? (data.cnpj   || '') : '';
+  $('unit-email').value    = data ? (data.email  || '') : '';
+  $('unit-street').value   = data ? (data.street || '') : '';
+  $('unit-neighborhood').value = data ? (data.neighborhood || '') : '';
+  $('unit-zip').value      = data ? (data.zip    || '') : '';
+  $('unit-city').value     = data ? (data.city   || '') : '';
+  $('unit-state').value    = data ? (data.state  || '') : '';
+  $('unit-notes').value    = data ? (data.notes  || '') : '';
+
+  const delBtn = $('btn-delete-unit');
+  if (delBtn) delBtn.classList.toggle('hidden', !isEdit);
+  if (delBtn && isEdit) {
+    delBtn.onclick = () => window.deleteUnit(data.id);
+  }
+
+  openModal('modal-unit');
+};
+
+window.deleteUnit = async (id) => {
+  if (!confirm('Deseja realmente excluir esta unidade? Os profissionais vinculados perderão o vínculo.')) return;
+  try {
+    showLoading('loading_saving');
+    await apiFetch(`/entities/unit/${id}`, { method: 'DELETE' });
+    syncAllData();
+    closeModal('modal-unit');
+    hideLoading();
+  } catch (err) {
+    hideLoading();
+    console.error(err);
+    alert('Erro ao excluir unidade.');
+  }
+};
 
 function renderServiceSelection(context, current = []) {
   const container = $(`${context}-services-list`);
@@ -1908,6 +1990,8 @@ window.openEntityModal = (type, data = null) => {
     if (labelL1) labelL1.textContent = 'Especialidade / Cargo';
     if (labelL2) labelL2.textContent = 'Telefone / Contato';
     schedGroup.classList.remove('hidden');
+    // Populate unit selector
+    _populateUnitSelect($('ent-unit'), data ? (data.unitId || '') : '');
     renderServiceSelection('ent', data ? (data.services || []) : []);
   } else if (type === 'product') {
     if (title) title.textContent = isEdit ? 'Editar Produto/Serv.' : 'Adicionar Produto/Serv.';
@@ -1959,6 +2043,7 @@ document.addEventListener('DOMContentLoaded', () => {
         restStart: $('ent-rest-start').value,
         restEnd: $('ent-rest-end').value,
         services: selectedServices,
+        unitId: type === 'professional' ? ($('ent-unit')?.value || '') : undefined,
         createdAt: S.editingEntityId && S.entities[type] && S.entities[type][id] ? S.entities[type][id].createdAt : new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
@@ -1973,6 +2058,49 @@ document.addEventListener('DOMContentLoaded', () => {
         hideLoading();
         console.error(err);
         alert('Erro ao salvar o cadastro.');
+      }
+    };
+  }
+
+  // Listener for unit form
+  const unitForm = $('unit-form');
+  if (unitForm) {
+    unitForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const name = $('unit-name').value.trim();
+      if (!name) return alert('Por favor, insira o nome da unidade.');
+
+      showLoading('loading_saving');
+      const id = $('unit-id').value || uid();
+      const data = {
+        id,
+        type: 'unit',
+        name,
+        phone:        $('unit-phone').value.trim(),
+        cnpj:         $('unit-cnpj').value.trim(),
+        email:        $('unit-email').value.trim(),
+        street:       $('unit-street').value.trim(),
+        neighborhood: $('unit-neighborhood').value.trim(),
+        zip:          $('unit-zip').value.trim(),
+        city:         $('unit-city').value.trim(),
+        state:        $('unit-state').value.trim().toUpperCase(),
+        notes:        $('unit-notes').value.trim(),
+        createdAt: $('unit-id').value && S.entities?.unit?.[$('unit-id').value]
+          ? S.entities.unit[$('unit-id').value].createdAt
+          : new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+
+      try {
+        await apiFetch(`/entities/unit/${id}`, { method: 'PUT', body: JSON.stringify(data) });
+        syncAllData();
+        hideLoading();
+        closeModal('modal-unit');
+        play('click');
+      } catch (err) {
+        hideLoading();
+        console.error(err);
+        alert('Erro ao salvar a unidade.');
       }
     };
   }

@@ -1035,6 +1035,8 @@
             style="display: flex; gap: 8px; padding: 12px; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto;">
             <button class="btn btn-outline btn-sm business-tab-btn solid active" data-tab="professional"
               style="white-space: nowrap;" data-i18n="professionals">Profissionais</button>
+            <button class="btn btn-outline btn-sm business-tab-btn" data-tab="unit"
+              style="white-space: nowrap;" data-i18n="units">Unidades</button>
             <button class="btn btn-outline btn-sm business-tab-btn" data-tab="product"
               style="white-space: nowrap;" data-i18n="products">Produtos/Serviços</button>
             <button class="btn btn-outline btn-sm business-tab-btn" data-tab="client"
@@ -1551,6 +1553,12 @@
             </div>
 
             <div id="ent-professional-schedule" class="hidden">
+              <div class="field-group" style="margin-bottom: 12px;">
+                <label class="field-label" data-i18n="label_unit">Unidade</label>
+                <select id="ent-unit" class="field-input">
+                  <option value="">— Sem unidade —</option>
+                </select>
+              </div>
               <label class="field-label" data-i18n="label_opening_hours">Horário de Trabalho</label>
               <div style="display: flex; gap: 8px; margin-bottom: 8px;">
                 <input type="time" id="ent-work-start" class="field-input" value="08:00">
@@ -1574,6 +1582,85 @@
           <div class="form-actions" style="margin-top: 20px;">
             <div class="flex gap-2 flex-1">
               <button type="submit" id="btn-save-entity" class="btn btn-primary flex-1">Salvar Cadastro</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- UNIT MODAL -->
+  <div id="modal-unit" class="modal-overlay hidden" style="z-index: 10001;">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-header">
+        <div id="unit-modal-title" class="modal-title">Nova Unidade</div>
+        <button id="btn-close-unit" class="btn btn-ghost btn-icon-sm modal-close">
+          <span class="material-symbols-outlined">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="unit-form" style="display: flex; flex-direction: column; gap: 16px;">
+          <input type="hidden" id="unit-id" />
+
+          <div class="field-group">
+            <label class="field-label" data-i18n="unit_name_label">Nome da Unidade *</label>
+            <input type="text" id="unit-name" class="field-input" required placeholder="Ex: Filial Centro">
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div class="field-group">
+              <label class="field-label" data-i18n="label_phone">Telefone</label>
+              <input type="text" id="unit-phone" class="field-input" placeholder="(00) 00000-0000">
+            </div>
+            <div class="field-group">
+              <label class="field-label" data-i18n="label_cnpj">CNPJ</label>
+              <input type="text" id="unit-cnpj" class="field-input" placeholder="00.000.000/0001-00">
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" data-i18n="unit_email_label">E-mail</label>
+            <input type="email" id="unit-email" class="field-input" placeholder="contato@unidade.com">
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" data-i18n="unit_address_label">Endereço</label>
+            <input type="text" id="unit-street" class="field-input" placeholder="Rua, Número" style="margin-bottom: 8px;">
+          </div>
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
+            <div class="field-group">
+              <label class="field-label" data-i18n="unit_neighborhood_label">Bairro</label>
+              <input type="text" id="unit-neighborhood" class="field-input" placeholder="Bairro">
+            </div>
+            <div class="field-group">
+              <label class="field-label" data-i18n="unit_zip_label">CEP</label>
+              <input type="text" id="unit-zip" class="field-input" placeholder="00000-000">
+            </div>
+          </div>
+          <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
+            <div class="field-group">
+              <label class="field-label" data-i18n="unit_city_label">Cidade</label>
+              <input type="text" id="unit-city" class="field-input" placeholder="Cidade">
+            </div>
+            <div class="field-group">
+              <label class="field-label" data-i18n="unit_state_label">UF</label>
+              <input type="text" id="unit-state" class="field-input" placeholder="MG" maxlength="2" style="text-transform:uppercase;">
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label class="field-label" data-i18n="unit_notes_label">Observações</label>
+            <textarea id="unit-notes" class="field-input" rows="2" placeholder="Informações adicionais..."></textarea>
+          </div>
+
+          <div class="form-actions" style="margin-top: 8px;">
+            <button type="button" id="btn-delete-unit" class="btn btn-danger hidden">
+              <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 6px;">delete</span>
+              <span data-i18n="btn_delete">Excluir</span>
+            </button>
+            <div class="flex gap-2 flex-1">
+              <button type="submit" id="btn-save-unit" class="btn btn-primary flex-1" data-i18n="unit_save_btn">Salvar Unidade</button>
             </div>
           </div>
         </form>
