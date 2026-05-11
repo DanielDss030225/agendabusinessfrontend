@@ -184,6 +184,10 @@ const TRANSLATIONS = {
     all_professionals: 'Todos Profissionais',
     no_services_found: 'Nenhum serviço encontrado',
     business_settings: 'Config. Empresa',
+    clients: 'Clientes',
+    suppliers: 'Fornecedores',
+    professionals: 'Profissionais',
+    products: 'Produtos/Serviços',
 
     // ---- Search Modal ----
     search_title: 'Pesquisar Eventos',
@@ -522,6 +526,10 @@ const TRANSLATIONS = {
     all_professionals: 'All Professionals',
     no_services_found: 'No services found',
     business_settings: 'Company Settings',
+    clients: 'Clients',
+    suppliers: 'Suppliers',
+    professionals: 'Professionals',
+    products: 'Products/Services',
 
     // ---- Search Modal ----
     search_title: 'Search events',
