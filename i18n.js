@@ -9,7 +9,7 @@ const TRANSLATIONS = {
     // ---- Login ----
     login_header_access: 'Acesso à Conta',
     login_header_register: 'Criar Nova Conta',
-    login_title: 'Sistema comercial para Clinícas, Academias <br> e Salões de Beleza.',
+    login_title: 'Agenda Business',
     login_label: 'Login (7 dígitos)',
     login_placeholder: 'Digite seu ID',
     login_pass_label: 'Senha',
@@ -292,7 +292,7 @@ const TRANSLATIONS = {
 
     // ---- Agent ----
     agent_fab: 'Agente AI',
-    agent_intro_title: 'Agenda Business, sua Agente IA',
+    agent_intro_title: 'Follow, sua Agente IA',
     agent_intro_desc: 'Sempre pronta para otimizar sua rotina e tirar suas dúvidas.',
     agent_online: 'Online e pronto para ajudar',
     agent_greeting: "Olá! Estou pronto. Diga algo como 'Folga amanhã?' ou peça ajuda.",
@@ -363,7 +363,7 @@ const TRANSLATIONS = {
     // ---- Login ----
     login_header_access: 'Account Access',
     login_header_register: 'Create New Account',
-    login_title: 'Commercial System for Clinics, Gyms <br> and Beauty Salons.',
+    login_title: 'Agenda Business',
     login_label: 'Login (7 digits)',
     login_placeholder: 'Enter your ID',
     login_pass_label: 'Password',
@@ -645,7 +645,7 @@ const TRANSLATIONS = {
 
     // ---- Agent ----
     agent_fab: 'AI Agent',
-    agent_intro_title: 'Agenda Business, your AI Agent',
+    agent_intro_title: 'Follow, your AI Agent',
     agent_intro_desc: 'Always ready to optimize your routine and answer your questions.',
     agent_online: 'Online and ready to help',
     agent_greeting: "Hello! I'm ready. Ask something like 'Day off tomorrow?' or ask for help.",
