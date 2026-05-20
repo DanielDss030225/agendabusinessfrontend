@@ -27,7 +27,7 @@ const API_BASE = 'https://agendabusinessbackend.onrender.com/api';
 async function apiFetch(path, options = {}) {
   const user = firebase.auth().currentUser;
   if (!user) throw new Error('Not authenticated');
-  
+
   const token = await user.getIdToken();
   const headers = {
     'Authorization': `Bearer ${token}`,
@@ -65,7 +65,53 @@ const S = {
   showGlobalFinance: localStorage.getItem('agbizu_show_global_finance') !== 'false',
   sessionStartTime: Date.now(),
   company: {},
-  profFilter: localStorage.getItem('agbizu_prof_filter') || ''
+  profFilter: localStorage.getItem('agbizu_prof_filter') || '',
+  authType: 'admin', // or 'seller'
+  isSellerMode: false,
+  currentProfessionalId: null
+};
+
+// Conflict Prevention Utility
+S.checkConflicts = function(profId, date, startTime, durationMin, excludeId = null) {
+  if (!profId) return false; // If no prof, no conflict check possible or needed here
+  
+  const newStart = new Date(`${date}T${startTime}:00`);
+  const newEnd = new Date(newStart.getTime() + (durationMin * 60000));
+
+  // Check Events (Tarefas)
+  for (const ev of S.events) {
+    if (ev.id === excludeId) continue;
+    if (ev.professionalId !== profId) continue;
+    if (ev.date !== date) continue;
+    if (!ev.time) continue;
+
+    const evStart = new Date(`${ev.date}T${ev.time}:00`);
+    const evDur = parseInt(ev.duration) || 30; // Fallback to 30min
+    const evEnd = new Date(evStart.getTime() + (evDur * 60000));
+
+    // Overlap condition: (StartA < EndB) && (EndA > StartB)
+    if (newStart < evEnd && newEnd > evStart) {
+      return { type: 'Tarefa', title: ev.title, time: ev.time };
+    }
+  }
+
+  // Check Transactions (Agendamentos)
+  for (const tr of S.transactions) {
+    if (tr.id === excludeId) continue;
+    if (tr.professionalId !== profId) continue;
+    if (tr.date !== date) continue;
+    if (!tr.time) continue;
+
+    const trStart = new Date(`${tr.date}T${tr.time}:00`);
+    const trDur = parseInt(tr.duration) || 30;
+    const trEnd = new Date(trStart.getTime() + (trDur * 60000));
+
+    if (newStart < trEnd && newEnd > trStart) {
+      return { type: 'Agendamento', title: tr.desc, time: tr.time };
+    }
+  }
+
+  return null;
 };
 
 // ======================== STATS TRACKING ========================
@@ -192,7 +238,7 @@ function showLoading(msgKey = 'loading_wait') {
     el = document.createElement('div');
     el.id = 'firebase-loading';
     el.style.cssText = `position:fixed;inset:0;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:99999;gap:14px;font-family:var(--font);`;
-    el.innerHTML = `<img class="imgGif" src="fundoinvisivel.png" ><p id="fb-load-msg" style="color:#374151;font-size:.95rem; margin-top:10px;">${msg}</p>`;
+    el.innerHTML = `<img src="fadeprogress.svg" class="imgGif"> <p id="fb-load-msg" style="color:#374151;font-size:.95rem; margin-top:10px;">${msg}</p>`;
     document.body.appendChild(el);
   } else {
     document.getElementById('fb-load-msg').textContent = msg;
@@ -212,7 +258,7 @@ async function syncAllData() {
   try {
     console.log("[DEBUG] Syncing all data from backend...");
     const data = await apiFetch('/sync');
-    
+
     S.events = data.events || [];
     S.transactions = (data.transactions || []).map(t => ({
       ...t,
@@ -221,7 +267,7 @@ async function syncAllData() {
     }));
     S.entities = data.entities || {};
     S.company = data.company || {};
-    
+
     if (data.profile) {
       S.userScale = data.profile.scale;
       S.soundsEnabled = data.profile.sounds;
@@ -258,7 +304,7 @@ function startRealtimeSync() {
   // We can poll every 30 seconds for external changes, 
   // or just rely on manual sync after operations.
   if (window._syncInterval) clearInterval(window._syncInterval);
-  window._syncInterval = setInterval(syncAllData, 60000); 
+  window._syncInterval = setInterval(syncAllData, 60000);
 }
 
 // Inicia o carregamento logo ao carregar o script (apenas se já tiver idioma definido)
@@ -269,6 +315,42 @@ if (localStorage.getItem('agbizu_lang')) {
 // ======================== AUTH LOGIC (Unified with ViewGo) ========================
 let isLoginMode = true;
 let currentAuthStep = 1;
+
+window.setAuthType = function(type) {
+  S.authType = type;
+  document.getElementById('mode-admin').classList.toggle('active', type === 'admin');
+  document.getElementById('mode-seller').classList.toggle('active', type === 'seller');
+  
+  const titleEl = $('auth-section-title');
+  const businessGrp = $('group-business-code');
+  const emailLbl = document.querySelector('#group-email-step1 .field-label');
+  const emailInp = $('inp-email');
+
+  if (type === 'seller') {
+    if (titleEl) titleEl.textContent = 'Acesso Vendedor';
+    if (businessGrp) businessGrp.classList.remove('hidden');
+    if (emailLbl) emailLbl.textContent = 'Usuário / Email';
+    if (emailInp) emailInp.placeholder = 'Seu usuário';
+    hide('btn-toggle-mode');
+    hide('forgot-pass-wrap');
+    hide('auth-steps-indicator');
+  } else {
+    if (titleEl) titleEl.textContent = isLoginMode ? 'Acesso à Conta' : 'Criar Nova Conta';
+    if (businessGrp) businessGrp.classList.add('hidden');
+    if (emailLbl) emailLbl.textContent = 'E-mail';
+    if (emailInp) emailInp.placeholder = 'seu@email.com';
+    show('btn-toggle-mode');
+    show('forgot-pass-wrap');
+    if (!isLoginMode) show('auth-steps-indicator');
+  }
+  
+  // Reset fields
+  $('inp-business-code').value = '';
+  $('inp-email').value = '';
+  $('inp-pass').value = '';
+  currentAuthStep = 1;
+  goToAuthStep(1);
+};
 
 window.resetAuthUI = function () {
   isLoginMode = true;
@@ -568,11 +650,10 @@ firebase.auth().onAuthStateChanged(async (user) => {
   if (user) {
     console.log("User logged in:", user.uid);
     S.currentUser = user.uid;
-
-    // Initial data sync will happen in initApp (via startRealtimeSync)
+    S.isSellerMode = false;
+    localStorage.removeItem('agbizu_seller_mode');
     localStorage.setItem('agbizu_session', user.uid);
 
-    // Check for Admin
     if (user.email === 'maispraticodesenvolvimento@gmail.com') {
       const btn = document.getElementById('btn-admin-panel');
       if (btn) {
@@ -580,11 +661,20 @@ firebase.auth().onAuthStateChanged(async (user) => {
         btn.onclick = () => window.location.href = 'adm.html';
       }
     }
-
     initApp();
   } else {
-    console.log("No user session.");
-    logout(true); // silent logout
+    const isSeller = localStorage.getItem('agbizu_seller_mode') === 'true';
+    if (isSeller) {
+      console.log("Professional session detected.");
+      S.isSellerMode = true;
+      S.currentUser = localStorage.getItem('agbizu_session');
+      S.currentProfessionalId = localStorage.getItem('agbizu_prof_id');
+      S.profFilter = S.currentProfessionalId;
+      initApp();
+    } else {
+      console.log("No user session.");
+      logout(true); // silent logout
+    }
   }
 });
 
@@ -603,6 +693,29 @@ async function initApp() {
 
     await syncAllData();
 
+    if (S.isSellerMode) {
+      // Disable professional selection for seller
+      const headerSelect = $('header-prof-filter');
+      if (headerSelect) {
+        headerSelect.value = S.currentProfessionalId;
+        headerSelect.disabled = true;
+        headerSelect.style.opacity = '0.6';
+      }
+      // Hide admin settings from menu
+      document.querySelectorAll('.menu-item').forEach(item => {
+         const onclick = item.getAttribute('onclick') || '';
+         if (onclick.includes('business-settings') || onclick.includes('units')) {
+           item.classList.add('hidden');
+         }
+      });
+      // Hide whatsapp management
+      const waLink = document.querySelector('a[href="whatsapp.html"]');
+      if (waLink) waLink.closest('.menu-item')?.classList.add('hidden');
+      
+      const setupBtn = document.getElementById('btn-admin-setup');
+      if (setupBtn) setupBtn.classList.add('hidden');
+    }
+
     if (S.userScale) {
       if ($('scale-display')) $('scale-display').textContent = S.userScale.display;
       S.forceScale = false;
@@ -613,7 +726,7 @@ async function initApp() {
 
     S.currentDate = new Date();
     setView('week');
-    
+
     // Inicia intervalo de sync após carga inicial
     if (window._syncInterval) clearInterval(window._syncInterval);
     window._syncInterval = setInterval(syncAllData, 60000);
@@ -694,6 +807,47 @@ document.getElementById('login-form').onsubmit = async (e) => {
   const errEl = $('login-error');
 
   errEl.textContent = '';
+  
+  if (S.authType === 'seller') {
+    const businessCode = $('inp-business-code').value.trim();
+    const username = $('inp-email').value.trim(); 
+    const passValue = $('inp-pass').value;
+
+    if (!businessCode || !username || !passValue) {
+       if (currentAuthStep === 1 && (businessCode && username)) {
+          nextAuthStep();
+          return;
+       }
+       errEl.textContent = i18n.t('err_fill_all');
+       return;
+    }
+
+    showLoading('loading_connecting');
+    try {
+      const resp = await fetch(`${API_BASE}/auth/seller/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ businessCode, username, password: passValue })
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.error || 'Erro no login');
+
+      S.isSellerMode = true;
+      S.currentUser = data.adminUid;
+      S.currentProfessionalId = data.professionalId;
+      S.profFilter = data.professionalId;
+      S.authType = 'seller';
+
+      localStorage.setItem('agbizu_session', data.adminUid);
+      localStorage.setItem('agbizu_seller_mode', 'true');
+      localStorage.setItem('agbizu_prof_id', data.professionalId);
+      initApp();
+    } catch (err) {
+      hideLoading();
+      errEl.textContent = err.message;
+    }
+    return;
+  }
 
   const maxSteps = isLoginMode ? 2 : 4;
   if (currentAuthStep < maxSteps) {
@@ -959,16 +1113,27 @@ function updateProfSelectors() {
 
   const t = (k) => typeof i18n !== 'undefined' ? (i18n.t(k) || k) : k;
 
-  const options = `<option value="">${t('all_professionals')}</option>` +
+  let options = `<option value="">${t('all_professionals')}</option>` +
     profs.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+
+  if (S.isSellerMode) {
+     // If seller, they should only see themselves in the "All" context of selectors if we allow it, 
+     // but mostly we want to lock them.
+     const me = profs.find(p => p.id === S.currentProfessionalId);
+     if (me) {
+        options = `<option value="${me.id}">${me.name}</option>`;
+     }
+  }
 
   if (headerSelect) {
     headerSelect.innerHTML = options;
     headerSelect.value = S.profFilter;
+    if (S.isSellerMode) {
+      headerSelect.disabled = true;
+    }
     headerSelect.style.borderColor = S.profFilter ? 'var(--primary)' : 'var(--border)';
     headerSelect.style.color = S.profFilter ? 'var(--primary)' : 'var(--text2)';
 
-    // Atachar listener caso ainda não tenha (ou reatachar para garantir)
     headerSelect.onchange = (e) => {
       S.profFilter = e.target.value;
       localStorage.setItem('agbizu_prof_filter', S.profFilter);
@@ -978,9 +1143,24 @@ function updateProfSelectors() {
       play('click');
     };
   }
+  
   const selLabel = `- ${t('btn_select') || 'SELECIONE'} -`;
-  if (evtSelect) evtSelect.innerHTML = `<option value="">${selLabel}</option>` + profs.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
-  if (transSelect) transSelect.innerHTML = `<option value="">${selLabel}</option>` + profs.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+  const formOptions = S.isSellerMode ? options : (`<option value="">${selLabel}</option>` + profs.map(p => `<option value="${p.id}">${p.name}</option>`).join(''));
+  
+  if (evtSelect) {
+    evtSelect.innerHTML = formOptions;
+    if (S.isSellerMode) {
+      evtSelect.value = S.currentProfessionalId;
+      evtSelect.disabled = true;
+    }
+  }
+  if (transSelect) {
+    transSelect.innerHTML = formOptions;
+     if (S.isSellerMode) {
+      transSelect.value = S.currentProfessionalId;
+      transSelect.disabled = true;
+    }
+  }
 }
 
 async function addEvent(data) {
@@ -1810,17 +1990,17 @@ window.openUnitModal = (data = null) => {
   const titleEl = $('unit-modal-title');
   if (titleEl) titleEl.textContent = isEdit ? 'Editar Unidade' : 'Nova Unidade';
 
-  $('unit-id').value       = data ? data.id     : '';
-  $('unit-name').value     = data ? data.name   : '';
-  $('unit-phone').value    = data ? (data.phone  || '') : '';
-  $('unit-cnpj').value     = data ? (data.cnpj   || '') : '';
-  $('unit-email').value    = data ? (data.email  || '') : '';
-  $('unit-street').value   = data ? (data.street || '') : '';
+  $('unit-id').value = data ? data.id : '';
+  $('unit-name').value = data ? data.name : '';
+  $('unit-phone').value = data ? (data.phone || '') : '';
+  $('unit-cnpj').value = data ? (data.cnpj || '') : '';
+  $('unit-email').value = data ? (data.email || '') : '';
+  $('unit-street').value = data ? (data.street || '') : '';
   $('unit-neighborhood').value = data ? (data.neighborhood || '') : '';
-  $('unit-zip').value      = data ? (data.zip    || '') : '';
-  $('unit-city').value     = data ? (data.city   || '') : '';
-  $('unit-state').value    = data ? (data.state  || '') : '';
-  $('unit-notes').value    = data ? (data.notes  || '') : '';
+  $('unit-zip').value = data ? (data.zip || '') : '';
+  $('unit-city').value = data ? (data.city || '') : '';
+  $('unit-state').value = data ? (data.state || '') : '';
+  $('unit-notes').value = data ? (data.notes || '') : '';
 
   const delBtn = $('btn-delete-unit');
   if (delBtn) delBtn.classList.toggle('hidden', !isEdit);
@@ -1892,6 +2072,17 @@ function renderCompanySettings(container) {
 
   container.innerHTML = `
         <div style="padding: 20px; display: flex; flex-direction: column; gap: 16px;">
+            <div style="background: var(--primary-lt); padding: 16px; border-radius: 12px; border: 1px dashed var(--primary); display: flex; flex-direction: column; gap: 4px;">
+                <label class="field-label" style="color: var(--primary); margin: 0; font-weight: 700;">Código da Empresa (Business ID)</label>
+                <div style="font-family: monospace; font-size: 1.1rem; color: var(--text); display: flex; justify-content: space-between; align-items: center;">
+                    <span id="cfg-business-code">${S.currentUser}</span>
+                    <button class="btn btn-ghost btn-icon-sm" onclick="navigator.clipboard.writeText('${S.currentUser}'); alert('Código copiado!')">
+                        <span class="material-symbols-outlined" style="font-size: 18px;">content_copy</span>
+                    </button>
+                </div>
+                <p style="font-size: 0.75rem; color: var(--primary); margin-top: 4px; opacity: 0.8;">Passe este código para seus vendedores utilizarem no login.</p>
+            </div>
+
             <div class="field-group">
                 <label class="field-label">${t('label_company_logo')}</label>
                 <input type="text" id="cfg-logo" class="field-input" value="${c.logo || ''}">
@@ -1975,6 +2166,10 @@ window.openEntityModal = (type, data = null) => {
   $('ent-work-end').value = data ? (data.workEnd || '18:00') : '18:00';
   $('ent-rest-start').value = data ? (data.restStart || '12:00') : '12:00';
   $('ent-rest-end').value = data ? (data.restEnd || '13:00') : '13:00';
+  
+  // Credentials
+  if ($('ent-username')) $('ent-username').value = data ? (data.username || '') : '';
+  if ($('ent-password')) $('ent-password').value = data ? (data.password || '') : '';
 
   const isEdit = !!data;
   const ext = $('ent-extended-fields');
@@ -2042,6 +2237,8 @@ document.addEventListener('DOMContentLoaded', () => {
         workEnd: $('ent-work-end').value,
         restStart: $('ent-rest-start').value,
         restEnd: $('ent-rest-end').value,
+        username: type === 'professional' ? ($('ent-username')?.value.trim() || '') : undefined,
+        password: type === 'professional' ? ($('ent-password')?.value.trim() || '') : undefined,
         services: selectedServices,
         unitId: type === 'professional' ? ($('ent-unit')?.value || '') : undefined,
         createdAt: S.editingEntityId && S.entities[type] && S.entities[type][id] ? S.entities[type][id].createdAt : new Date().toISOString(),
@@ -2076,15 +2273,15 @@ document.addEventListener('DOMContentLoaded', () => {
         id,
         type: 'unit',
         name,
-        phone:        $('unit-phone').value.trim(),
-        cnpj:         $('unit-cnpj').value.trim(),
-        email:        $('unit-email').value.trim(),
-        street:       $('unit-street').value.trim(),
+        phone: $('unit-phone').value.trim(),
+        cnpj: $('unit-cnpj').value.trim(),
+        email: $('unit-email').value.trim(),
+        street: $('unit-street').value.trim(),
         neighborhood: $('unit-neighborhood').value.trim(),
-        zip:          $('unit-zip').value.trim(),
-        city:         $('unit-city').value.trim(),
-        state:        $('unit-state').value.trim().toUpperCase(),
-        notes:        $('unit-notes').value.trim(),
+        zip: $('unit-zip').value.trim(),
+        city: $('unit-city').value.trim(),
+        state: $('unit-state').value.trim().toUpperCase(),
+        notes: $('unit-notes').value.trim(),
         createdAt: $('unit-id').value && S.entities?.unit?.[$('unit-id').value]
           ? S.entities.unit[$('unit-id').value].createdAt
           : new Date().toISOString(),
@@ -2204,7 +2401,7 @@ function openDayModal(d) {
   // Eventos
   const evs = getEventsForDate(d);
   const evList = $('day-events-list');
-  evList.innerHTML = evs.length ? '' : `<p class="empty-state">${typeof i18n !== 'undefined' ? i18n.t('search_no_results') : 'Sem eventos'}</p>`;
+  evList.innerHTML = evs.length ? '' : `<p class="empty-state">${typeof i18n !== 'undefined' ? i18n.t('search_no_results') : 'Sem tarefas'}</p>`;
   evs.forEach(ev => {
     evList.appendChild(buildEventItem(ev, true, true, d));
   });
@@ -2212,7 +2409,7 @@ function openDayModal(d) {
   // Finanças
   const trs = getTransactionsForDate(d);
   const trList = $('day-finance-list');
-  trList.innerHTML = trs.length ? '' : `<p class="empty-state">${typeof i18n !== 'undefined' ? i18n.t('finance_empty') : 'Sem finanças'}</p>`;
+  trList.innerHTML = trs.length ? '' : `<p class="empty-state">${typeof i18n !== 'undefined' ? i18n.t('finance_empty') : 'Sem agendamentos'}</p>`;
   trs.forEach(t => {
     const isChecked = !!t.checked;
     const color = t.type === 'income' ? '#16a34a' : '#dc2626';
@@ -2248,7 +2445,7 @@ function openDayModal(d) {
         <div >
           ${truncate(t.desc)} ${t.installments > 0 ? `<span style="font-size:0.75rem; color:var(--text3);  margin-left:4px;">(${t.currentInstallment}/${t.installments})</span>` : ''}
         </div>
-        <div style="font-size:0.75rem; color:var(--text3); ">${t.type === 'income' ? (typeof i18n !== 'undefined' ? i18n.t('finance_type_income') : 'Receita') : (typeof i18n !== 'undefined' ? i18n.t('finance_type_expense') : 'Despesa')}${t.createdAt ? ` • ${typeof i18n !== 'undefined' ? i18n.t('launched_on') : 'Lançado em'} ${new Date(t.createdAt).toLocaleDateString(typeof i18n !== 'undefined' ? i18n.t('locale') : 'pt-BR')}` : ''}</div>
+        <div style="font-size:0.75rem; color:var(--text3); ">${t.type === 'income' ? (typeof i18n !== 'undefined' ? i18n.t('finance_type_income') : 'Agendamento') : (typeof i18n !== 'undefined' ? i18n.t('finance_type_expense') : 'Despesa')}${t.createdAt ? ` • ${typeof i18n !== 'undefined' ? i18n.t('launched_on') : 'Lançado em'} ${new Date(t.createdAt).toLocaleDateString(typeof i18n !== 'undefined' ? i18n.t('locale') : 'pt-BR')}` : ''}</div>
       </div>
       
       <div style="text-align:right; flex-shrink: 0;">
@@ -2392,6 +2589,26 @@ async function saveEventForm(e) {
     paymentMethod: $('evt-payment')?.value || 'none',
     services: Array.from(document.querySelectorAll('.service-chip-input-evt:checked')).map(c => c.value)
   };
+
+  // Calculate Total Duration
+  let totalDur = 30; // Default
+  if (data.services.length > 0) {
+    totalDur = 0;
+    data.services.forEach(svcId => {
+      const svc = S.entities.product?.[svcId];
+      if (svc) totalDur += parseInt(svc.duration) || 30;
+    });
+  }
+  data.duration = totalDur;
+
+  // Conflict Check
+  if (data.professionalId && data.time) {
+    const conflict = S.checkConflicts(data.professionalId, data.date, data.time, data.duration, S.editingEventId);
+    if (conflict) {
+      isSavingEvent = false;
+      return alert(`Conflito de Horário!\nO profissional já possui um(a) ${conflict.type} (${conflict.title}) às ${conflict.time}.`);
+    }
+  }
 
   const original = S.editingEventId ? S.events.find(e => e.id === S.editingEventId) : null;
   const isRecurring = original && original.recurrence && original.recurrence !== 'none';
@@ -3161,7 +3378,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const transId = S.editingTransactionId || Date.now().toString();
       const transAmount = parseFloat($('trans-amount').value) || 0;
       const transDateValue = parseDate($('trans-date').value);
-      const transDescValue = $('trans-desc').value || (typeof i18n !== 'undefined' ? i18n.t('default_transaction') : 'Transação');
+      const transDescValue = $('trans-desc').value || (typeof i18n !== 'undefined' ? i18n.t('default_transaction') : 'Agendamento');
 
       const original = S.editingTransactionId ? S.transactions.find(t => t.id === S.editingTransactionId) : null;
 
@@ -3179,6 +3396,26 @@ document.addEventListener('DOMContentLoaded', () => {
         installments: parseInt($('trans-installments')?.value) || 0,
         createdAt: original && original.createdAt ? original.createdAt : new Date().toISOString()
       };
+
+      // Calculate Total Duration
+      let totalDur = 30; // Default
+      if (saveDataLocal.services.length > 0) {
+        totalDur = 0;
+        saveDataLocal.services.forEach(svcId => {
+          const svc = S.entities.product?.[svcId];
+          if (svc) totalDur += parseInt(svc.duration) || 30;
+        });
+      }
+      saveDataLocal.duration = totalDur;
+
+      // Conflict Check
+      if (saveDataLocal.professionalId && saveDataLocal.time) {
+        const conflict = S.checkConflicts(saveDataLocal.professionalId, saveDataLocal.date, saveDataLocal.time, saveDataLocal.duration, S.editingTransactionId);
+        if (conflict) {
+          isSavingTrans = false;
+          return alert(`Conflito de Horário!\nO profissional já possui um(a) ${conflict.type} (${conflict.title}) às ${conflict.time}.`);
+        }
+      }
       const isRecurring = original && original.recurrence && original.recurrence !== 'none';
       let shouldAsk = isRecurring;
       let hideOnlyThis = false;
@@ -3264,7 +3501,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if ($('btn-add-fin-from-day')) {
     $('btn-add-fin-from-day').onclick = () => {
-      console.log("[DEBUG] Botão 'Nova Transação' clicado");
+      console.log("[DEBUG] Botão 'Novo Agendamento' clicado");
       play('click');
       const d = S.selectedDate || new Date();
       console.log("[DEBUG] Data selecionada:", d);
@@ -3374,7 +3611,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ---- Close buttons for entity/unit modals ----
   if ($('btn-close-entity')) $('btn-close-entity').onclick = () => closeModal('modal-entity');
-  if ($('btn-close-unit'))   $('btn-close-unit').onclick   = () => closeModal('modal-unit');
+  if ($('btn-close-unit')) $('btn-close-unit').onclick = () => closeModal('modal-unit');
 });
 // ======================== FINANCE LOGIC ========================
 function updateFinanceUI() {
@@ -3491,7 +3728,7 @@ window.openTransactionForm = function (d = null, trans = null) {
 
   if (trans && trans.id) {
     // Modo Edição
-    if (titleEl) titleEl.textContent = t('finance_edit') || 'Editar Transação';
+    if (titleEl) titleEl.textContent = t('finance_edit') || 'Editar Agendamento';
     if (btnDel) btnDel.classList.remove('hidden');
     if ($('trans-desc')) $('trans-desc').value = trans.desc || '';
     if ($('trans-amount')) $('trans-amount').value = trans.amount || 0;
@@ -3538,7 +3775,7 @@ window.openTransactionForm = function (d = null, trans = null) {
     }
   } else {
     // Modo Novo
-    if (titleEl) titleEl.textContent = t('finance_add') || 'Nova Transação';
+    if (titleEl) titleEl.textContent = t('finance_add') || 'Novo Agendamento';
     if (btnDel) btnDel.classList.add('hidden');
     if ($('trans-date')) setFPValue('trans-date', toDateStr(d || new Date()));
     if ($('trans-recurrence')) $('trans-recurrence').value = 'none';
@@ -3592,15 +3829,15 @@ window.toggleTransactionStatus = async function (id, event, dateStr = null) {
       if (!t.overrides) t.overrides = {};
       if (!t.overrides[targetDate]) t.overrides[targetDate] = {};
       t.overrides[targetDate].checked = newState;
-      await apiFetch(`/transactions/${id}/overrides/${targetDate}`, { 
-        method: 'PUT', 
-        body: JSON.stringify({ checked: newState }) 
+      await apiFetch(`/transactions/${id}/overrides/${targetDate}`, {
+        method: 'PUT',
+        body: JSON.stringify({ checked: newState })
       });
     } else {
       t.checked = newState;
-      await apiFetch(`/transactions/${id}`, { 
-        method: 'PUT', 
-        body: JSON.stringify({ checked: newState }) 
+      await apiFetch(`/transactions/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ checked: newState })
       });
     }
 

@@ -341,6 +341,44 @@
       font-size: 24px;
     }
 
+    /* ===== AUTH MODE SELECTOR ===== */
+    .auth-mode-selector {
+      display: flex;
+      background: var(--surface2, #f3f4f6);
+      border-radius: 14px;
+      padding: 4px;
+      margin-bottom: 24px;
+      gap: 4px;
+    }
+
+    .mode-btn {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px;
+      border: none;
+      background: transparent;
+      color: var(--text2, #6b7280);
+      font-family: var(--font);
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 10px;
+      transition: all 0.2s;
+    }
+
+    .mode-btn.active {
+      background: #ffffff;
+      color: var(--primary, #7c3aed);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .mode-btn .material-symbols-outlined {
+      font-size: 20px;
+    }
+
     /* Staggered animation for menu items */
     .fab-wrapper.open .fab-action:nth-child(3) {
       transition-delay: 0.05s;
@@ -417,6 +455,17 @@
 
         <form id="login-form" class="login-form" autocomplete="off">
 
+          <div id="auth-mode-selector" class="auth-mode-selector">
+            <button type="button" id="mode-admin" class="mode-btn active" onclick="setAuthType('admin')">
+              <span class="material-symbols-outlined">admin_panel_settings</span>
+              <span>Administrador</span>
+            </button>
+            <button type="button" id="mode-seller" class="mode-btn" onclick="setAuthType('seller')">
+              <span class="material-symbols-outlined">badge</span>
+              <span>Vendedor</span>
+            </button>
+          </div>
+
           <div id="auth-section-title"
             style="text-align: center; margin-bottom: 24px;  font-size: 1.5rem; color: var(--text);"
             data-i18n="login_header_access">Acesso à Conta</div>
@@ -434,6 +483,10 @@
 
               <!-- Step 1: Name (Register) / Email (Login) -->
               <div class="auth-step" id="step-1">
+                <div id="group-business-code" class="field-group hidden">
+                  <label class="field-label">Código da Empresa</label>
+                  <input id="inp-business-code" class="field-input" type="text" placeholder="Código fornecido pelo admin" />
+                </div>
                 <div id="group-name" class="field-group hidden">
                   <label class="field-label" data-i18n="login_name_label">Nome Completo</label>
                   <input id="inp-name" class="field-input" type="text" data-i18n="login_name_placeholder"
@@ -659,12 +712,12 @@
           </button>
 
           <button id="btn-new-event" class="btn btn-outline btn-full" data-i18n-attr="title" data-i18n="btn_new_title"
-            title="Novo Evento">
+            title="Nova Tarefa">
             <svg xmlns="http://www.w3.org/2000/svg" height="30px" viewBox="0 -960 960 960" width="30px" fill="#000000">
               <path
                 d="M680-80v-120H560v-80h120v-120h80v120h120v80H760v120h-80Zm-480-80q-33 0-56.5-23.5T120-240v-480q0-33 23.5-56.5T200-800h40v-80h80v80h240v-80h80v80h40q33 0 56.5 23.5T760-720v244q-20-3-40-3t-40 3v-84H200v320h280q0 20 3 40t11 40H200Zm0-480h480v-80H200v80Zm0 0v-80 80Z" />
             </svg>
-            <span data-i18n="btn_new">Novo Evento</span>
+            <span data-i18n="btn_new">Nova Tarefa</span>
           </button>
 
           <button id="btn-new-transaction-side" class="btn btn-outline btn-full" style="margin-bottom: 10px;">
@@ -672,7 +725,7 @@
               <path
                 d="M160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v240H160v240h400v80H160Zm0-480h640v-80H160v80ZM760-80v-120H640v-80h120v-120h80v120h120v80H840v120h-80ZM160-240v-480 480Z" />
             </svg>
-            <span data-i18n="btn_new_transaction">Adicionar uma nova transação</span>
+            <span data-i18n="btn_new_transaction">Novo Agendamento</span>
           </button>
 
           <button id="btn-add-professional" class="btn btn-outline btn-full" style="margin-bottom: 10px;">
@@ -725,7 +778,7 @@
           <button style="margin-bottom: 10px; margin-top: 10px;" id="btn-open-finances"
             class="btn btn-outline btn-full">
             <span class="material-symbols-outlined" style="margin-right:8px;">payments</span>
-            <span data-i18n="finance_title">Finanças</span>
+            <span data-i18n="finance_title">Agendamentos</span>
           </button>
           <button id="btn-toggle-global-finance" class="btn btn-outline btn-full" style="margin-bottom: 10px;">
             <div id="icon-finance-visible" style="margin-right:8px; display: flex; align-items:center;">
@@ -1236,7 +1289,7 @@
         <div id="buttonActionModal">
           <button id="btn-add-from-day" class="btn btn-outline flex-1" style="border-radius: 14px; height: 48px;">
             <span class="material-symbols-outlined" style="margin-right: 8px;">add</span>
-            <span data-i18n="btn_add_event">Evento</span>
+            <span data-i18n="btn_add_event">Tarefa</span>
           </button>
           <button id="btn-add-fin-from-day" class="btn btn-primary flex-1" style="border-radius: 14px; height: 48px;">
             <span class="material-symbols-outlined" style="margin-right: 8px;">payments</span>
@@ -1245,7 +1298,7 @@
         </div>
 
         <div style="font-size: 0.75rem;   text-transform: uppercase; margin: 16px 0 8px; letter-spacing: 0.5px;"
-          data-i18n="cat_evento">Eventos</div>
+          data-i18n="cat_evento">Tarefas</div>
         <div id="day-events-list" class="events-list"></div>
 
         <div style="font-size: 0.75rem;  text-transform: uppercase; margin: 16px 0 8px; letter-spacing: 0.5px;"
@@ -1264,7 +1317,7 @@
     <div class="modal-sheet modal-sheet-tall">
       <div class="modal-handle"></div>
       <div class="modal-header">
-        <div id="event-modal-title" class="modal-title">Novo Evento</div>
+        <div id="event-modal-title" class="modal-title">Nova Tarefa</div>
         <div class="flex gap-2 items-center">
           <span id="event-work-badge" class="work-badge hidden"></span>
           <button id="btn-close-event" class="btn btn-ghost btn-icon-sm modal-close">
@@ -1352,7 +1405,7 @@
               <button type="button" class="cat-btn active" data-cat="evento">
                 <span class="material-symbols-outlined"
                   style="display:block; font-size:20px; margin-bottom:4px;">event</span>
-                <span data-i18n="cat_evento">Evento</span>
+                <span data-i18n="cat_evento">Tarefa</span>
               </button>
               <button type="button" class="cat-btn" data-cat="aniversario">
                 <span class="material-symbols-outlined"
@@ -1415,7 +1468,7 @@
       <div class="modal-handle"></div>
       <div class="modal-header">
         <div style="display: flex; align-items: baseline; gap: 8px;">
-          <div class="modal-title" data-i18n="search_title">Pesquisar Eventos</div>
+          <div class="modal-title" data-i18n="search_title">Pesquisar Tarefas</div>
           <span id="events-count" class="events-count">0 <span data-i18n="events_count_zero">eventos</span></span>
         </div>
         <button id="btn-close-search" class="btn btn-ghost btn-icon-sm modal-close">
@@ -1580,8 +1633,20 @@
               </div>
 
               <label class="field-label" data-i18n="label_assigned_services">Serviços Vinculados</label>
-              <div id="ent-services-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px;">
+              <div id="ent-services-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; margin-bottom: 16px;">
                 <!-- JS rendered check chips -->
+              </div>
+
+              <div id="ent-seller-creds" style="background: var(--surface2); padding: 12px; border-radius: 12px; border: 1px dashed var(--border);">
+                <label class="field-label" style="color: var(--primary); font-weight: 700; margin-bottom: 8px;">Acesso do Vendedor</label>
+                <div class="field-group" style="margin-bottom: 8px;">
+                  <label class="field-label">Email / Usuário</label>
+                  <input type="text" id="ent-username" class="field-input" placeholder="Ex: joao.silva">
+                </div>
+                <div class="field-group">
+                  <label class="field-label">Senha</label>
+                  <input type="password" id="ent-password" class="field-input" placeholder="Defina uma senha">
+                </div>
               </div>
             </div>
           </div>
@@ -1747,7 +1812,7 @@
     <div class="modal-sheet">
       <div class="modal-handle"></div>
       <div class="modal-header">
-        <div class="modal-title" data-i18n="finance_add">Nova Transação</div>
+        <div class="modal-title" data-i18n="finance_add">Novo Agendamento</div>
         <button id="btn-close-transaction" class="btn btn-ghost btn-icon-sm modal-close">
           <span class="material-symbols-outlined">close</span>
         </button>
@@ -1851,7 +1916,7 @@
             </button>
             <div class="flex gap-2 flex-1">
               <button type="submit" id="btn-save-transaction" class="btn btn-primary flex-1"
-                data-i18n="btn_save_transaction">Salvar Transação</button>
+                data-i18n="btn_save_transaction">Salvar Agendamento</button>
             </div>
           </div>
         </form>
@@ -2070,7 +2135,7 @@
     <div id="fab-menu" class="fab-menu">
       <!-- Sub Action: Nova Transação -->
       <div class="fab-action" onclick="handleFabAction('transaction')">
-        <span class="fab-label" data-i18n="finance_add">Nova Transação</span>
+        <span class="fab-label" data-i18n="finance_add">Novo Agendamento</span>
         <div class="fab-sub-btn" style="background: #16a34a;">
           <span class="material-symbols-outlined">payments</span>
         </div>
@@ -2078,7 +2143,7 @@
 
       <!-- Sub Action: Novo Evento -->
       <div class="fab-action" onclick="handleFabAction('event')">
-        <span class="fab-label" data-i18n="btn_new">Novo Evento</span>
+        <span class="fab-label" data-i18n="btn_new">Nova Tarefa</span>
         <div class="fab-sub-btn" style="background: #3b82f6;">
           <span class="material-symbols-outlined">event</span>
         </div>
@@ -2111,12 +2176,12 @@
         <button id="btn-quick-add-event" class="btn btn-primary"
           style="justify-content: center; border-radius: 16px; padding: 14px;">
           <span class="material-symbols-outlined" style="margin-right: 8px;">calendar_today</span>
-          <span>Evento</span>
+          <span>Tarefa</span>
         </button>
         <button id="btn-quick-add-trans" class="btn btn-outline"
           style="justify-content: center; border-radius: 16px; padding: 14px; border-color: var(--green); color: var(--green);">
           <span class="material-symbols-outlined" style="margin-right: 8px;">payments</span>
-          <span>Transação</span>
+          <span>Agendamento</span>
         </button>
         <button class="btn btn-ghost" onclick="closeModal('modal-quick-add')"
           style="margin-top: 4px; color: var(--text3);">Cancelar</button>

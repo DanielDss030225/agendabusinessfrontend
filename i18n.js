@@ -56,17 +56,17 @@ const TRANSLATIONS = {
 
     // ---- Header ----
     btn_go_home: 'Início (Hoje)',
-    btn_new: 'Novo Evento',
-    btn_new_title: 'Novo Evento',
-    btn_search_title: 'Pesquisar Eventos',
+    btn_new: 'Nova Tarefa',
+    btn_new_title: 'Nova Tarefa',
+    btn_search_title: 'Pesquisar Tarefas',
     btn_sound_title: 'Sons',
     btn_logout_title: 'Sair',
     btn_lang: 'Idioma',
     btn_select: 'Selecionar',
 
     // ---- Scale Bar ----
-    events_count_zero: 'eventos',
-    events_count_one: 'evento',
+    events_count_zero: 'tarefas',
+    events_count_one: 'tarefa',
     btn_month: 'Mês',
     btn_week: 'Sem',
     btn_year: 'Ano',
@@ -82,17 +82,17 @@ const TRANSLATIONS = {
     day_more: 'mais',
 
     // ---- Day Modal ----
-    no_events: 'Nenhum evento',
-    btn_add_event: 'Adicionar Evento',
+    no_events: 'Nenhuma tarefa',
+    btn_add_event: 'Adicionar Tarefa',
     scale_label: 'Sua Escala',
     scale_off: 'Dia de Folga',
     scale_work: 'Dia de Trabalho',
 
     // ---- Event Form ----
-    new_event: 'Novo Evento',
+    new_event: 'Nova Tarefa',
     edit_event: 'Editar',
     evt_title_label: 'Título *',
-    evt_title_placeholder: 'Nome do evento',
+    evt_title_placeholder: 'Nome da tarefa',
     evt_title_error: 'Título é obrigatório',
     evt_desc_label: 'Descrição',
     evt_desc_placeholder: 'Detalhes (opcional)',
@@ -115,7 +115,7 @@ const TRANSLATIONS = {
     badge_work: 'Trab.',
 
     // ---- Categories ----
-    cat_evento: 'Evento',
+    cat_evento: 'Tarefa',
     cat_aniversario: 'Aniversário',
     cat_trabalho: 'Trabalho',
     cat_pessoal: 'Pessoal',
@@ -142,24 +142,24 @@ const TRANSLATIONS = {
     tutorial_off_dot: 'Folga',
 
     // ---- Finance Modal ----
-    finance_title: 'Transações do Mês',
+    finance_title: 'Agendamentos do Mês',
     finance_income: 'Receitas',
     finance_expenses: 'Despesas',
     finance_balance: 'Final',
     finance_installments: 'Parcelas (Qtd)',
-    finance_add: 'Nova Transação',
-    btn_new_transaction: 'Nova Transação',
-    finance_edit: 'Editar Transação',
+    finance_add: 'Novo Agendamento',
+    btn_new_transaction: 'Novo Agendamento',
+    finance_edit: 'Editar Agendamento',
     finance_type_income: 'Receita',
     finance_type_expense: 'Despesa',
-    finance_type_select: 'Defina o tipo de transação',
+    finance_type_select: 'Defina o tipo de agendamento',
     finance_amount: 'Valor (R$)',
     finance_date: 'Data',
-    finance_desc: 'Título da Transação',
-    finance_empty: 'Nenhuma transação encontrada.',
-    btn_save_transaction: 'Salvar Transação',
+    finance_desc: 'Título do Agendamento',
+    finance_empty: 'Nenhum agendamento encontrado.',
+    btn_save_transaction: 'Salvar Agendamento',
     finance_month_summary: 'Resumo de',
-    finance_title: 'Transações',
+    finance_title: 'Agendamentos',
     btn_scale: 'Minha Escala',
     btn_toggle_finance: 'Finance Bar',
     label_cnpj: 'CNPJ',
@@ -202,10 +202,10 @@ const TRANSLATIONS = {
     unit_no_unit: '— Sem unidade —',
 
     // ---- Search Modal ----
-    search_title: 'Pesquisar Eventos',
+    search_title: 'Pesquisar Tarefas',
     search_placeholder: 'Buscar por título, data, categoria...',
-    search_empty: 'Digite para pesquisar eventos',
-    search_no_results: 'Nenhum evento encontrado',
+    search_empty: 'Digite para pesquisar tarefas',
+    search_no_results: 'Nenhuma tarefa encontrada',
 
     // ---- Logout Modal ----
     logout_title: 'Sair da Conta?',
@@ -216,8 +216,8 @@ const TRANSLATIONS = {
 
     // ---- Confirm Modal ----
     confirm_delete_title: 'Excluir Item',
-    confirm_delete_desc: 'Tem certeza que deseja excluir permanentemente este evento?',
-    confirm_delete_trans_desc: 'Tem certeza que deseja excluir esta transação do financeiro?',
+    confirm_delete_desc: 'Tem certeza que deseja excluir permanentemente esta tarefa?',
+    confirm_delete_trans_desc: 'Tem certeza que deseja excluir este agendamento do financeiro?',
 
     modal_sound_title: 'Sons da Agenda',
     modal_sound_body: 'Deseja manter os efeitos sonoros ativos para uma experiência mais imersiva?',
@@ -254,9 +254,9 @@ const TRANSLATIONS = {
     loading_wait: '',
     launched_on: 'Lançado em',
     btn_load_more: 'Carregar Mais',
-    default_transaction: 'Transação',
-    err_process_transaction: 'Erro ao processar transação.',
-    err_save_transaction: 'Erro ao salvar transação. Verifique sua conexão.',
+    default_transaction: 'Agendamento',
+    err_process_transaction: 'Erro ao processar agendamento.',
+    err_save_transaction: 'Erro ao salvar agendamento. Verifique sua conexão.',
     err_apply_override: 'Erro ao aplicar edição específica.',
     custom_scale: 'Escala Custom',
     scale_configure_later: 'Configurar depois',
@@ -410,17 +410,17 @@ const TRANSLATIONS = {
 
     // ---- Header ----
     btn_go_home: 'Home (Today)',
-    btn_new: 'New Event',
-    btn_new_title: 'New Event',
-    btn_search_title: 'Search Events',
+    btn_new: 'New Task',
+    btn_new_title: 'New Task',
+    btn_search_title: 'Search Tasks',
     btn_sound_title: 'Sound',
     btn_logout_title: 'Logout',
     btn_lang: 'Language',
     btn_select: 'Select',
 
     // ---- Scale Bar ----
-    events_count_zero: 'events',
-    events_count_one: 'event',
+    events_count_zero: 'tasks',
+    events_count_one: 'task',
     btn_month: 'Month',
     btn_week: 'Week',
     btn_year: 'Year',
@@ -436,17 +436,17 @@ const TRANSLATIONS = {
     day_more: 'more',
 
     // ---- Day Modal ----
-    no_events: 'No events',
-    btn_add_event: 'Add Event',
+    no_events: 'No tasks',
+    btn_add_event: 'Add Task',
     scale_label: 'Your Schedule',
     scale_off: 'Day Off',
     scale_work: 'Work Day',
 
-    // ---- Event Form ----
-    new_event: 'New Event',
+    // ---- Task Form ----
+    new_event: 'New Task',
     edit_event: 'Edit',
     evt_title_label: 'Title *',
-    evt_title_placeholder: 'Event name',
+    evt_title_placeholder: 'Task name',
     evt_title_error: 'Title is required',
     evt_desc_label: 'Description',
     evt_desc_placeholder: 'Details (optional)',
@@ -469,7 +469,7 @@ const TRANSLATIONS = {
     badge_work: 'Work',
 
     // ---- Categories ----
-    cat_evento: 'Event',
+    cat_evento: 'Task',
     cat_aniversario: 'Birthday',
     cat_trabalho: 'Work',
     cat_pessoal: 'Personal',
@@ -496,24 +496,24 @@ const TRANSLATIONS = {
     tutorial_off_dot: 'Day off',
 
     // ---- Finance Modal ----
-    finance_title: 'Month Transactions',
+    finance_title: 'Month Appointments',
     finance_income: 'Income',
     finance_expenses: 'Expenses',
     finance_balance: 'Final',
     finance_installments: 'Installments',
-    finance_add: 'New transaction',
-    btn_new_transaction: 'New transaction',
-    finance_edit: 'Edit transaction',
+    finance_add: 'New appointment',
+    btn_new_transaction: 'New appointment',
+    finance_edit: 'Edit appointment',
     finance_type_income: 'Income',
     finance_type_expense: 'Expense',
-    finance_type_select: 'Select transaction type',
+    finance_type_select: 'Select appointment type',
     finance_amount: 'Amount ($)',
     finance_date: 'Date',
-    finance_desc: 'Transaction title',
-    finance_empty: 'No transactions found.',
-    btn_save_transaction: 'Save transaction',
+    finance_desc: 'Appointment title',
+    finance_empty: 'No appointments found.',
+    btn_save_transaction: 'Save appointment',
     finance_month_summary: 'Summary of',
-    finance_title: 'Transactions',
+    finance_title: 'Appointments',
     btn_scale: 'My Scale',
     btn_toggle_finance: 'Finance Bar',
     label_cnpj: 'CNPJ',
@@ -556,10 +556,10 @@ const TRANSLATIONS = {
     unit_no_unit: '— No unit —',
 
     // ---- Search Modal ----
-    search_title: 'Search events',
+    search_title: 'Search tasks',
     search_placeholder: 'Search by title, date, category...',
-    search_empty: 'Type to search events',
-    search_no_results: 'No events found',
+    search_empty: 'Type to search tasks',
+    search_no_results: 'No tasks found',
 
     // ---- Modals ----
     modal_sound_title: 'Agenda Sounds',
@@ -595,8 +595,8 @@ const TRANSLATIONS = {
 
     // ---- Confirm Modal ----
     confirm_delete_title: 'Delete Item',
-    confirm_delete_desc: 'Are you sure you want to permanently delete this event?',
-    confirm_delete_trans_desc: 'Are you sure you want to delete this finance transaction?',
+    confirm_delete_desc: 'Are you sure you want to permanently delete this task?',
+    confirm_delete_trans_desc: 'Are you sure you want to delete this appointment transaction?',
 
 
     // ---- Loading ----
@@ -607,9 +607,9 @@ const TRANSLATIONS = {
     loading_wait: '',
     launched_on: 'Created on',
     btn_load_more: 'Load More',
-    default_transaction: 'Transaction',
-    err_process_transaction: 'Error processing transaction.',
-    err_save_transaction: 'Error saving transaction. Check your connection.',
+    default_transaction: 'Appointment',
+    err_process_transaction: 'Error processing appointment.',
+    err_save_transaction: 'Error saving appointment. Check your connection.',
     err_apply_override: 'Error applying specific edit.',
     custom_scale: 'Custom Schedule',
     scale_configure_later: 'Set up later',
