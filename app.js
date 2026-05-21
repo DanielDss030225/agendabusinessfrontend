@@ -81,7 +81,7 @@ const S = {
 
 // Conflict Prevention Utility
 S.checkConflicts = function(profId, date, startTime, durationMin, excludeId = null) {
-  if (!profId) return false; // If no prof, no conflict check possible or needed here
+  if (!profId) return false;
   
   const newStart = new Date(`${date}T${startTime}:00`);
   const newEnd = new Date(newStart.getTime() + (durationMin * 60000));
@@ -94,10 +94,16 @@ S.checkConflicts = function(profId, date, startTime, durationMin, excludeId = nu
     if (!ev.time) continue;
 
     const evStart = new Date(`${ev.date}T${ev.time}:00`);
-    const evDur = parseInt(ev.duration) || 30; // Fallback to 30min
+    let evDur = parseInt(ev.duration);
+    if (!evDur && ev.services && ev.services.length > 0) {
+      evDur = ev.services.reduce((acc, sid) => {
+        const s = S.entities?.product?.[sid];
+        return acc + (parseInt(s?.duration) || 30);
+      }, 0);
+    }
+    if (!evDur) evDur = 30;
     const evEnd = new Date(evStart.getTime() + (evDur * 60000));
 
-    // Overlap condition: (StartA < EndB) && (EndA > StartB)
     if (newStart < evEnd && newEnd > evStart) {
       return { type: 'Tarefa', title: ev.title, time: ev.time };
     }
@@ -111,7 +117,14 @@ S.checkConflicts = function(profId, date, startTime, durationMin, excludeId = nu
     if (!tr.time) continue;
 
     const trStart = new Date(`${tr.date}T${tr.time}:00`);
-    const trDur = parseInt(tr.duration) || 30;
+    let trDur = parseInt(tr.duration);
+    if (!trDur && tr.services && tr.services.length > 0) {
+      trDur = tr.services.reduce((acc, sid) => {
+        const s = S.entities?.product?.[sid];
+        return acc + (parseInt(s?.duration) || 30);
+      }, 0);
+    }
+    if (!trDur) trDur = 30;
     const trEnd = new Date(trStart.getTime() + (trDur * 60000));
 
     if (newStart < trEnd && newEnd > trStart) {
@@ -709,10 +722,11 @@ async function initApp() {
         headerSelect.disabled = true;
         headerSelect.style.opacity = '0.6';
       }
-      // Hide admin settings from menu
+      // Hide admin settings and business-related items from menu
       document.querySelectorAll('.menu-item').forEach(item => {
          const onclick = item.getAttribute('onclick') || '';
-         if (onclick.includes('business-settings') || onclick.includes('units')) {
+         const text = item.textContent.toLowerCase();
+         if (onclick.includes('business-settings') || onclick.includes('units') || onclick.includes('setView(\'business\')') || text.includes('negócios') || text.includes('config')) {
            item.classList.add('hidden');
          }
       });
@@ -720,8 +734,11 @@ async function initApp() {
       const waLink = document.querySelector('a[href="whatsapp.html"]');
       if (waLink) waLink.closest('.menu-item')?.classList.add('hidden');
       
-      const setupBtn = document.getElementById('btn-admin-setup');
-      if (setupBtn) setupBtn.classList.add('hidden');
+      const adminSetupBtn = document.getElementById('btn-admin-setup');
+      if (adminSetupBtn) adminSetupBtn.classList.add('hidden');
+
+      const adminPanelBtn = document.getElementById('btn-admin-panel');
+      if (adminPanelBtn) adminPanelBtn.classList.add('hidden');
     }
 
     if (S.userScale) {
