@@ -25,10 +25,18 @@ const db = firebase.database();
 const API_BASE = 'https://agendabusinessbackend.onrender.com/api';
 
 async function apiFetch(path, options = {}) {
-  const user = firebase.auth().currentUser;
-  if (!user) throw new Error('Not authenticated');
+  let token = '';
 
-  const token = await user.getIdToken();
+  if (S.isSellerMode) {
+    // Para vendedores, usamos um token sintético que o backend reconhece
+    token = `seller-session-placeholder:${S.currentUser}:${S.currentProfessionalId}`;
+  } else {
+    // Para administradores (Firebase)
+    const user = firebase.auth().currentUser;
+    if (!user) throw new Error('Not authenticated');
+    token = await user.getIdToken();
+  }
+
   const headers = {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
