@@ -17,10 +17,26 @@ if (!firebase.apps.length) {
 const API_BASE = 'https://agendabusinessbackend.onrender.com/api';
 
 async function apiFetch(path, options = {}) {
-  const user = firebase.auth().currentUser;
-  if (!user) throw new Error('Not authenticated');
+  let token = '';
+  const isSeller = localStorage.getItem('agbizu_seller_mode') === 'true';
+  const currentUser = localStorage.getItem('agbizu_session');
+  const professionalId = localStorage.getItem('agbizu_prof_id');
+
+  if (isSeller && currentUser && professionalId) {
+    // Para vendedores, usamos um token sintético que o backend reconhece
+    token = `seller-session-placeholder:${currentUser}:${professionalId}`;
+  } else {
+    // Para administradores (Firebase)
+    const user = firebase.auth().currentUser;
+    if (!user) {
+      // Tenta recuperar do localStorage se o firebase ainda não carregou
+      if (currentUser) token = currentUser; // Fallback, mas idealmente seria o ID token
+      else throw new Error('Not authenticated');
+    } else {
+      token = await user.getIdToken();
+    }
+  }
   
-  const token = await user.getIdToken();
   const headers = {
     'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
@@ -42,7 +58,8 @@ const el = {
     statusBadge: document.getElementById('wa-status-badge'),
     loading: document.getElementById('loading'),
     instructions: document.getElementById('wa-instructions'),
-    btnOpenConnect: document.getElementById('btn-open-connect')
+    btnOpenConnect: document.getElementById('btn-open-connect'),
+    userInfo: document.getElementById('wa-user-info')
 };
 
 let statusInterval = null;
@@ -176,9 +193,17 @@ el.btnOpenConnect.addEventListener('click', async () => {
 });
 
 firebase.auth().onAuthStateChanged((user) => {
-    if (!user) {
+    const isSeller = localStorage.getItem('agbizu_seller_mode') === 'true';
+    const hasSession = localStorage.getItem('agbizu_session');
+
+    if (!user && !isSeller) {
         location.href = 'index.html';
     } else {
+        const userName = localStorage.getItem('agbizu_user_name') || (user ? user.email : 'Vendedor');
+        if (el.userInfo) {
+            el.userInfo.textContent = `Conectado como: ${userName}`;
+            el.userInfo.style.display = 'block';
+        }
         loadDevices();
         // Periodically refresh device list
         setInterval(loadDevices, 10000);

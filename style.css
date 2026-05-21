@@ -109,6 +109,8 @@ select {
   text-align: center;
   transition: all .4s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
+  background: blueviolet !important;
+
 }
 
 /* Auth Stepper Styles */
@@ -223,6 +225,7 @@ select {
   color: var(--text);
   letter-spacing: -1px;
   margin-bottom: 4px;
+  color: white !important;
 }
 
 .login-sub {
@@ -230,6 +233,7 @@ select {
   color: var(--text2);
 
   opacity: 0.7;
+  color: white !important;
 }
 
 #event-form {
@@ -2335,7 +2339,7 @@ select {
 
   .login-hero {
     flex: 1;
-    background: linear-gradient(135deg, var(--primary), var(--primary-dk));
+    background: blueviolet !important;
     justify-content: center;
     border-radius: 0;
     box-shadow: var(--shadow-lg);
@@ -2345,7 +2349,7 @@ select {
 
   .login-hero .login-title,
   .login-hero .login-sub {
-    color: white;
+    color: white !important ;
   }
 
 
@@ -2423,6 +2427,8 @@ select {
 @media (max-width: 900px) {
   .login-title {
     font-size: 25px;
+    color: white !important;
+
   }
 
   .loginImg {

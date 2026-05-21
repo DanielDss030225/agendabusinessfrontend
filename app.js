@@ -678,6 +678,7 @@ firebase.auth().onAuthStateChanged(async (user) => {
     S.isSellerMode = false;
     localStorage.removeItem('agbizu_seller_mode');
     localStorage.setItem('agbizu_session', user.uid);
+    localStorage.setItem('agbizu_user_name', user.displayName || user.email);
 
     if (user.email === 'maispraticodesenvolvimento@gmail.com') {
       const btn = document.getElementById('btn-admin-panel');
@@ -739,9 +740,6 @@ async function initApp() {
            item.classList.add('hidden');
          }
       });
-      // Hide whatsapp management
-      const waLink = document.querySelector('a[href="whatsapp.html"]');
-      if (waLink) waLink.closest('.menu-item')?.classList.add('hidden');
       
       const adminSetupBtn = document.getElementById('btn-admin-setup');
       if (adminSetupBtn) adminSetupBtn.classList.add('hidden');
@@ -878,6 +876,7 @@ document.getElementById('login-form').onsubmit = async (e) => {
       localStorage.setItem('agbizu_session', data.adminUid);
       localStorage.setItem('agbizu_seller_mode', 'true');
       localStorage.setItem('agbizu_prof_id', data.professionalId);
+      localStorage.setItem('agbizu_user_name', data.name);
       initApp();
     } catch (err) {
       hideLoading();
