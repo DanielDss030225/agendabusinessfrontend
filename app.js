@@ -105,7 +105,8 @@ S.checkConflicts = function(profId, date, startTime, durationMin, excludeId = nu
     const evEnd = new Date(evStart.getTime() + (evDur * 60000));
 
     if (newStart < evEnd && newEnd > evStart) {
-      return { type: 'Tarefa', title: ev.title, time: ev.time };
+      const fmt = (d) => d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      return { type: 'Tarefa', title: ev.title, time: ev.time, endTime: fmt(evEnd) };
     }
   }
 
@@ -128,7 +129,8 @@ S.checkConflicts = function(profId, date, startTime, durationMin, excludeId = nu
     const trEnd = new Date(trStart.getTime() + (trDur * 60000));
 
     if (newStart < trEnd && newEnd > trStart) {
-      return { type: 'Agendamento', title: tr.desc, time: tr.time };
+      const fmt = (d) => d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      return { type: 'Agendamento', title: tr.desc, time: tr.time, endTime: fmt(trEnd) };
     }
   }
 
@@ -301,8 +303,10 @@ async function syncAllData() {
     S.lastRenderedYear = null;
     refreshCalendar();
     updateSoundIcon();
+    return true;
   } catch (err) {
     console.error("Sync error:", err);
+    return false;
   }
 }
 
@@ -712,7 +716,12 @@ async function initApp() {
     // O cabeçalho deve ser mostrado sempre para que o menu (hambúrguer) esteja visível
     show('scale-bar');
 
-    await syncAllData();
+    const syncSuccess = await syncAllData();
+    if (!syncSuccess) {
+      console.warn("[DEBUG] Falha no sincronismo inicial. Retornando ao login.");
+      logout(true);
+      return;
+    }
 
     if (S.isSellerMode) {
       // Disable professional selection for seller
@@ -863,6 +872,9 @@ document.getElementById('login-form').onsubmit = async (e) => {
       S.profFilter = data.professionalId;
       S.authType = 'seller';
 
+      localStorage.setItem('agbizu_saved_business_code', businessCode);
+      localStorage.setItem('agbizu_saved_username', username);
+
       localStorage.setItem('agbizu_session', data.adminUid);
       localStorage.setItem('agbizu_seller_mode', 'true');
       localStorage.setItem('agbizu_prof_id', data.professionalId);
@@ -891,6 +903,7 @@ document.getElementById('login-form').onsubmit = async (e) => {
     }
     showLoading('loading_connecting');
     try {
+      localStorage.setItem('agbizu_saved_email', email);
       await firebase.auth().signInWithEmailAndPassword(email, pass);
     } catch (err) {
       hideLoading();
@@ -948,6 +961,8 @@ async function logout(silent = false) {
 
   S.currentUser = null; S.userScale = null; S.events = []; S.transactions = []; S.customSeq = [];
   localStorage.removeItem('agbizu_session');
+  localStorage.removeItem('agbizu_seller_mode');
+  localStorage.removeItem('agbizu_prof_id');
 
   if (!silent) {
     refreshCalendar();
@@ -1756,6 +1771,7 @@ function renderWeekView() {
 
     // Header Day
     const hCol = document.createElement('div');
+    hCol.className = 'week-day-header';
     hCol.style = `flex: 1; padding: 10px; text-align: center; border-right: 1px solid var(--border); background: ${isToday ? 'var(--primary-lt)' : 'var(--surface)'}; color: ${isToday ? 'var(--primary)' : 'var(--text2)'}; cursor: pointer;`;
     hCol.onclick = () => { play('click'); openDayModal(cur); };
     hCol.innerHTML = `<div style="font-size:0.7rem;">${wd[i]}</div><div style="">${cur.getDate()}</div>`;
@@ -2526,7 +2542,18 @@ function openEventForm(evt, clickedDate = null) {
   setFPValue('evt-end-time', evt?.endTime || '');
   $('evt-recurrence').value = evt?.recurrence || 'none';
   if ($('evt-payment')) $('evt-payment').value = evt?.paymentMethod || 'none';
-  if ($('evt-professional')) $('evt-professional').value = evt?.professionalId || '';
+  if ($('evt-payment')) $('evt-payment').value = evt?.paymentMethod || 'none';
+  
+  const profSelect = $('evt-professional');
+  if (profSelect) {
+    if (S.isSellerMode && S.currentProfessionalId) {
+      profSelect.value = S.currentProfessionalId;
+      profSelect.disabled = true;
+    } else {
+      profSelect.value = evt?.professionalId || '';
+      profSelect.disabled = false;
+    }
+  }
 
   updateProfSelectors();
   renderServiceSelection('evt', evt?.services || []);
@@ -2610,7 +2637,8 @@ async function saveEventForm(e) {
     endTime: $('evt-end-time').value,
     category: document.querySelector('.cat-btn.active')?.dataset.cat || 'evento',
     recurrence: recValue,
-    professionalId: $('evt-professional')?.value || '',
+    recurrence: recValue,
+    professionalId: S.isSellerMode ? S.currentProfessionalId : ($('evt-professional')?.value || ''),
     paymentMethod: $('evt-payment')?.value || 'none',
     services: Array.from(document.querySelectorAll('.service-chip-input-evt:checked')).map(c => c.value)
   };
@@ -2631,7 +2659,7 @@ async function saveEventForm(e) {
     const conflict = S.checkConflicts(data.professionalId, data.date, data.time, data.duration, S.editingEventId);
     if (conflict) {
       isSavingEvent = false;
-      return alert(`Conflito de Horário!\nO profissional já possui um(a) ${conflict.type} (${conflict.title}) às ${conflict.time}.`);
+      return alert(`⚠️ Conflito de Horário!\n\n"${conflict.title}" (${conflict.type}) ocupa o período:\n🕐 ${conflict.time} → ${conflict.endTime}\n\nEscolha outro horário ou revise os serviços para que não ultrapassem esse intervalo.`);
     }
   }
 
@@ -3284,17 +3312,14 @@ document.addEventListener('DOMContentLoaded', () => {
   if ($('btn-add-transaction')) $('btn-add-transaction').onclick = () => { closeModal('modal-finances'); window.openTransactionForm(); };
   if ($('btn-close-transaction')) $('btn-close-transaction').onclick = () => closeModal('modal-transaction');
   if ($('btn-delete-transaction')) {
-    let clickedDelTrans = false;
     $('btn-delete-transaction').onclick = (e) => {
       if (e) { e.preventDefault(); e.stopPropagation(); }
-      if (clickedDelTrans) return;
-      clickedDelTrans = true;
       if (S.editingTransactionId) {
-        // Modal de confirmação já é chamado em window.deleteTransaction
-        window.deleteTransaction(S.editingTransactionId);
+        const idToDelete = S.editingTransactionId;
         closeModal('modal-transaction');
+        // Chama a exclusão que já tem o modal de confirmação embutido
+        window.deleteTransaction(idToDelete);
       }
-      setTimeout(() => clickedDelTrans = false, 500);
     };
   }
 
@@ -3414,7 +3439,7 @@ document.addEventListener('DOMContentLoaded', () => {
         amount: transAmount,
         date: transDateValue,
         time: $('trans-time')?.value || '08:00',
-        professionalId: $('trans-professional')?.value || '',
+        professionalId: S.isSellerMode ? S.currentProfessionalId : ($('trans-professional')?.value || ''),
         paymentMethod: $('trans-payment').value,
         services: Array.from(document.querySelectorAll('.service-chip-input-trans:checked')).map(c => c.value),
         recurrence: $('trans-recurrence')?.value || 'none',
@@ -3438,7 +3463,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const conflict = S.checkConflicts(saveDataLocal.professionalId, saveDataLocal.date, saveDataLocal.time, saveDataLocal.duration, S.editingTransactionId);
         if (conflict) {
           isSavingTrans = false;
-          return alert(`Conflito de Horário!\nO profissional já possui um(a) ${conflict.type} (${conflict.title}) às ${conflict.time}.`);
+          return alert(`⚠️ Conflito de Horário!\n\n"${conflict.title}" (${conflict.type}) ocupa o período:\n🕐 ${conflict.time} → ${conflict.endTime}\n\nEscolha outro horário ou revise os serviços para que não ultrapassem esse intervalo.`);
         }
       }
       const isRecurring = original && original.recurrence && original.recurrence !== 'none';
@@ -3612,7 +3637,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Impedir que o toque dentro do conteúdo do modal cause conflito de scroll/drag no fundo
     sheet.addEventListener('pointerdown', (e) => {
-      if (e.target !== handle && !header.contains(e.target)) e.stopPropagation();
+      const isHeaderClick = header && header.contains(e.target);
+      if (e.target !== handle && !isHeaderClick) e.stopPropagation();
     }, { passive: true });
   });
 
@@ -3808,7 +3834,17 @@ window.openTransactionForm = function (d = null, trans = null) {
     if ($('trans-installments')) $('trans-installments').value = '';
     if ($('trans-recurring-options')) $('trans-recurring-options').classList.add('hidden');
     window.setTransType('income');
-    if ($('trans-professional')) $('trans-professional').value = '';
+    
+    const transProfSel = $('trans-professional');
+    if (transProfSel) {
+      if (S.isSellerMode && S.currentProfessionalId) {
+        transProfSel.value = S.currentProfessionalId;
+        transProfSel.disabled = true;
+      } else {
+        transProfSel.value = '';
+        transProfSel.disabled = false;
+      }
+    }
     if ($('trans-payment')) $('trans-payment').value = 'none';
     if ($('trans-time')) setFPValue('trans-time', trans?.time || '');
     renderServiceSelection('trans', []);
@@ -4103,6 +4139,28 @@ window.openQuickAdd = (date, time) => {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Restaurar dados salvos no login
+  const restoreLoginData = () => {
+    if ($('inp-email')) {
+      $('inp-email').value = S.authType === 'admin' 
+        ? (localStorage.getItem('agbizu_saved_email') || '')
+        : (localStorage.getItem('agbizu_saved_username') || '');
+      
+      $('inp-email').oninput = (e) => {
+        const key = S.authType === 'admin' ? 'agbizu_saved_email' : 'agbizu_saved_username';
+        localStorage.setItem(key, e.target.value);
+      };
+    }
+    if ($('inp-business-code')) {
+      $('inp-business-code').value = localStorage.getItem('agbizu_saved_business_code') || '';
+      $('inp-business-code').oninput = (e) => {
+        localStorage.setItem('agbizu_saved_business_code', e.target.value);
+      };
+    }
+  };
+
+  restoreLoginData();
+
   if ($('btn-quick-add-event')) $('btn-quick-add-event').onclick = () => {
     closeModal('modal-quick-add');
     const { date, time } = S.quickAddData;

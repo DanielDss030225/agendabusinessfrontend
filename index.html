@@ -444,7 +444,7 @@
       <!-- Top Branding -->
       <div class="login-hero">
         <div class="login-logo">
-          <img src="fundoinvisivel.png" class="loginImg" alt="Logo">
+          <img src="fundovioleta.webp" class="loginImg" alt="Logo">
         </div>
         <div class="login-title">Follow</div>
         <p class="login-sub" id="login-description" data-i18n="login_title">Agenda Business</p>
@@ -485,7 +485,8 @@
               <div class="auth-step" id="step-1">
                 <div id="group-business-code" class="field-group hidden">
                   <label class="field-label">Código da Empresa</label>
-                  <input id="inp-business-code" class="field-input" type="text" placeholder="Código fornecido pelo admin" />
+                  <input id="inp-business-code" class="field-input" type="text"
+                    placeholder="Código fornecido pelo admin" />
                 </div>
                 <div id="group-name" class="field-group hidden">
                   <label class="field-label" data-i18n="login_name_label">Nome Completo</label>
@@ -730,23 +731,10 @@
 
           <button id="btn-add-professional" class="btn btn-outline btn-full" style="margin-bottom: 10px;">
             <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 6px;">badge</span>
-            <span>Profissionais</span>
+            <span>Gestão da Empresa</span>
           </button>
 
-          <button id="btn-add-product" class="btn btn-outline btn-full" style="margin-bottom: 10px;">
-            <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 6px;">inventory_2</span>
-            <span>Produtos/Serv.</span>
-          </button>
 
-          <button id="btn-add-client" class="btn btn-outline btn-full" style="margin-bottom: 10px;">
-            <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 6px;">group_add</span>
-            <span>Clientes</span>
-          </button>
-
-          <button id="btn-add-supplier" class="btn btn-outline btn-full" style="margin-bottom: 10px;">
-            <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 6px;">local_shipping</span>
-            <span>Fornecedores</span>
-          </button>
 
 
 
@@ -1330,7 +1318,7 @@
           <input type="hidden" id="evt-id" />
           <div class="field-group">
             <label class="field-label" data-i18n="evt_title_label">Título *</label>
-            <input id="evt-title" class="field-input" type="text" data-i18n="evt_title_placeholder"
+            <input id="evt-title" class="field-input" type="text" required data-i18n="evt_title_placeholder"
               data-i18n-attr="placeholder" placeholder="Nome do evento" />
             <p id="err-title" class="form-error hidden" data-i18n="evt_title_error">Título é obrigatório</p>
           </div>
@@ -1633,18 +1621,21 @@
               </div>
 
               <label class="field-label" data-i18n="label_assigned_services">Serviços Vinculados</label>
-              <div id="ent-services-list" style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; margin-bottom: 16px;">
+              <div id="ent-services-list"
+                style="display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; margin-bottom: 16px;">
                 <!-- JS rendered check chips -->
               </div>
 
-              <div id="ent-seller-creds" style="background: var(--surface2); padding: 12px; border-radius: 12px; border: 1px dashed var(--border);">
-                <label class="field-label" style="color: var(--primary); font-weight: 700; margin-bottom: 8px;">Acesso do Vendedor</label>
+              <div id="ent-seller-creds"
+                style="background: var(--surface2); padding: 12px; border-radius: 12px; border: 1px dashed var(--border);">
+                <label class="field-label" style="color: var(--primary); font-weight: 700; margin-bottom: 8px;">Acesso
+                  do Vendedor</label>
                 <div class="field-group" style="margin-bottom: 8px;">
-                  <label class="field-label">Email / Usuário</label>
-                  <input type="text" id="ent-username" class="field-input" placeholder="Ex: joao.silva">
+                  <label class="field-label">Email de Acesso *</label>
+                  <input type="email" id="ent-username" class="field-input" placeholder="Ex: joao@seuemail.com">
                 </div>
                 <div class="field-group">
-                  <label class="field-label">Senha</label>
+                  <label class="field-label">Senha de Acesso *</label>
                   <input type="password" id="ent-password" class="field-input" placeholder="Defina uma senha">
                 </div>
               </div>
@@ -1836,9 +1827,9 @@
           </div>
 
           <div class="field-group">
-            <label class="field-label" data-i18n="finance_desc">Descrição</label>
-            <input type="text" id="trans-desc" class="field-input" data-i18n-attr="placeholder"
-              data-i18n="finance_desc">
+            <label class="field-label" data-i18n="finance_desc">Descrição *</label>
+            <input type="text" id="trans-desc" class="field-input" required data-i18n-attr="placeholder"
+              data-i18n="finance_desc" placeholder="...">
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
