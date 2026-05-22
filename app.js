@@ -298,6 +298,7 @@ async function syncAllData() {
 
     // Refresh UI
     updateProfSelectors();
+    updateClientSelectors();
     if (S.viewMode === 'business') renderBusinessTab();
     if (!$('modal-finances').classList.contains('hidden')) updateFinanceUI();
     S.lastRenderedYear = null;
@@ -1202,6 +1203,20 @@ function updateProfSelectors() {
   }
 }
 
+function updateClientSelectors() {
+  if (!S.entities) return;
+  const clients = Object.values(S.entities?.client || {}).sort((a, b) => a.name.localeCompare(b.name));
+  const transSelect = $('trans-client');
+  if (!transSelect) return;
+
+  const t = (k) => typeof i18n !== 'undefined' ? (i18n.t(k) || k) : k;
+  
+  let options = `<option value="">${t('select_client') || '- SELECIONE O CLIENTE -'}</option>` +
+    clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+  transSelect.innerHTML = options;
+}
+
 async function addEvent(data) {
   try {
     const res = await apiFetch('/events', {
@@ -1249,13 +1264,15 @@ function hide(id) { const el = $(id); if (el) el.classList.add('hidden'); }
 const catColor = (cat) => ({ evento: '#3b82f6', aniversario: '#ec4899', trabalho: '#22c55e', pessoal: '#a855f7', saude: '#ef4444', estudo: '#f59e0b' })[cat] || '#3b82f6';
 
 let lastModalOpen = 0;
-function openModal(id) {
+function openModal(id, keepOthers = false) {
   const now = Date.now();
   if (now - lastModalOpen < 400) return;
   lastModalOpen = now;
 
   // Garantir que nenhum outro modal esteja aberto antes de abrir o novo
-  window.closeAnyModal();
+  if (!keepOthers && id !== 'modal-entity' && id !== 'modal-unit') {
+    window.closeAnyModal();
+  }
 
   // Limpar os toasts (removendo visíveis) para não conflitar com modals de inicialização
   const toastContainer = document.getElementById('toast-container');
@@ -2243,7 +2260,7 @@ window.openEntityModal = (type, data = null) => {
     if (labelL2) labelL2.textContent = 'Empresa/Produto';
   }
 
-  openModal('modal-entity');
+  openModal('modal-entity', true);
 };
 
 // Listener para o formulário de entidades
@@ -2287,10 +2304,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
       try {
         await apiFetch(`/entities/${type}/${id}`, { method: 'PUT', body: JSON.stringify(data) });
-        syncAllData();
+        await syncAllData();
         hideLoading();
         closeModal('modal-entity');
         play('click');
+        
+        // Auto-select in transaction form if it's a new client
+        if (type === 'client' && !S.editingEntityId) {
+          const transClient = $('trans-client');
+          if (transClient && !$('modal-transaction').classList.contains('hidden')) {
+            transClient.value = id;
+          }
+        }
       } catch (err) {
         hideLoading();
         console.error(err);
@@ -3427,7 +3452,19 @@ document.addEventListener('DOMContentLoaded', () => {
       const transId = S.editingTransactionId || Date.now().toString();
       const transAmount = parseFloat($('trans-amount').value) || 0;
       const transDateValue = parseDate($('trans-date').value);
-      const transDescValue = $('trans-desc').value || (typeof i18n !== 'undefined' ? i18n.t('default_transaction') : 'Agendamento');
+      const clientId = $('trans-client')?.value || '';
+      if (!clientId) return alert('Por favor, selecione um cliente.');
+      
+      const paymentMethod = $('trans-payment')?.value || 'none';
+      if (paymentMethod === 'none') return alert('Por favor, selecione uma forma de pagamento.');
+
+      const clientName = clientId && S.entities.client?.[clientId] ? S.entities.client[clientId].name : '';
+      
+      let transDescValue = $('trans-desc').value.trim();
+      if (!transDescValue) {
+        transDescValue = (typeof i18n !== 'undefined' ? i18n.t('default_transaction') : 'Agendamento');
+        if (clientName) transDescValue += ` - ${clientName}`;
+      }
 
       const original = S.editingTransactionId ? S.transactions.find(t => t.id === S.editingTransactionId) : null;
 
@@ -3435,6 +3472,8 @@ document.addEventListener('DOMContentLoaded', () => {
         id: transId,
         type: S.financeType,
         desc: transDescValue,
+        clientId: clientId,
+        clientName: clientName,
         amount: transAmount,
         date: transDateValue,
         time: $('trans-time')?.value || '08:00',
@@ -3662,6 +3701,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // ---- Close buttons for entity/unit modals ----
   if ($('btn-close-entity')) $('btn-close-entity').onclick = () => closeModal('modal-entity');
   if ($('btn-close-unit')) $('btn-close-unit').onclick = () => closeModal('modal-unit');
+
+  if ($('btn-quick-add-client')) {
+    $('btn-quick-add-client').onclick = (e) => {
+      e.preventDefault();
+      play('click');
+      window.openEntityModal('client');
+    };
+  }
 });
 // ======================== FINANCE LOGIC ========================
 function updateFinanceUI() {
@@ -3770,6 +3817,7 @@ window.openTransactionForm = function (d = null, trans = null) {
   S.editingOccurrenceDate = d ? toDateStr(d) : (trans ? trans.date : toDateStr(new Date()));
 
   updateProfSelectors();
+  updateClientSelectors();
   renderServiceSelection('trans', trans?.services || []);
 
   const t = (k) => typeof i18n !== 'undefined' ? i18n.t(k) : k;
@@ -3781,6 +3829,7 @@ window.openTransactionForm = function (d = null, trans = null) {
     if (titleEl) titleEl.textContent = t('finance_edit') || 'Editar Agendamento';
     if (btnDel) btnDel.classList.remove('hidden');
     if ($('trans-desc')) $('trans-desc').value = trans.desc || '';
+    if ($('trans-client')) $('trans-client').value = trans.clientId || '';
     if ($('trans-amount')) $('trans-amount').value = trans.amount || 0;
     // Se for ocorrência recorrente, d terá a data clicada
     const displayDate = d || (trans.date ? new Date(trans.date + 'T12:00:00') : new Date());

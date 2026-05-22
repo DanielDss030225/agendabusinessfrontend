@@ -1832,6 +1832,18 @@
               data-i18n="finance_desc" placeholder="...">
           </div>
 
+          <div class="field-group">
+            <label class="field-label" data-i18n="label_client">Cliente</label>
+            <div style="display: flex; gap: 8px;">
+              <select id="trans-client" class="field-input" style="flex: 1;">
+                <option value="">- SELECIONE O CLIENTE -</option>
+              </select>
+              <button type="button" id="btn-quick-add-client" class="btn btn-primary btn-icon" style="width: 44px; flex-shrink: 0;" title="Adicionar Novo Cliente">
+                <span class="material-symbols-outlined">person_add</span>
+              </button>
+            </div>
+          </div>
+
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
             <div class="field-group">
               <label class="field-label" data-i18n="label_professional">Profissional</label>

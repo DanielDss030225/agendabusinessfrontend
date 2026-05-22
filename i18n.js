@@ -200,6 +200,8 @@ const TRANSLATIONS = {
     unit_notes_label: 'Observações',
     unit_save_btn: 'Salvar Unidade',
     unit_no_unit: '— Sem unidade —',
+    label_client: 'Cliente',
+    select_client: '- SELECIONE O CLIENTE -',
 
     // ---- Search Modal ----
     search_title: 'Pesquisar Tarefas',
@@ -554,6 +556,8 @@ const TRANSLATIONS = {
     unit_notes_label: 'Notes',
     unit_save_btn: 'Save Unit',
     unit_no_unit: '— No unit —',
+    label_client: 'Client',
+    select_client: '- SELECT CLIENT -',
 
     // ---- Search Modal ----
     search_title: 'Search tasks',
